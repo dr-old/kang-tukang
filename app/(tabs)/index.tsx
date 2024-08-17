@@ -1,70 +1,127 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, StyleSheet, View, useColorScheme } from "react-native";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from "@/components/ThemedText";
+import { BaseLayout } from "@/components/BaseLayout";
+import { Colors } from "@/constants/Colors";
+import { responsiveHeight, responsiveWidth } from "@/utils/sizing";
+import { Input } from "@/components/Input";
+import { useState } from "react";
+import { AntDesign, Feather, Fontisto } from "@expo/vector-icons";
+import { formatCurrency } from "@/utils/helpers";
 
 export default function HomeScreen() {
+  const colorScheme = useColorScheme();
+  const [search, setSearch] = useState("");
+
+  const handleChange = (name: string, value: string) => {
+    setSearch(value);
+  };
+  const balance = 20000;
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
+    <BaseLayout
+      lightBackgroundColor={Colors.warning}
+      darkBackgroundColor={Colors.warning}
+      enableScroll={true}
+      statusBarStyle="dark-content">
+      <View style={styles.header}>
+        <ThemedText font="medium" type="normal">
+          Welcome to Kangtukang
+          <Image
+            source={require("@/assets/images/Palu.png")}
+            style={styles.hammer}
+          />
         </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
+        <ThemedText font="light" type="default" style={{ marginBottom: 25 }}>
+          Solutions to all your problems and complaints
         </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <View>
+          <Input
+            name="search"
+            labelOff={true}
+            value={search}
+            onChange={handleChange}
+            onBlur={() => console.log()}
+            placeholder="Your location"
+            radius={20}
+            preffix={
+              <Fontisto
+                name={"map-marker-alt"}
+                color={Colors.orange}
+                size={24}
+                style={{ marginLeft: 16 }}
+              />
+            }
+            suffix={
+              <Feather
+                name={"search"}
+                color={Colors.black}
+                size={24}
+                style={{ marginRight: 16 }}
+              />
+            }
+          />
+          <View
+            style={{
+              ...styles.balance,
+              backgroundColor: Colors[colorScheme ?? "light"].background,
+            }}>
+            <View style={styles.flex}>
+              <ThemedText font="medium" type="semiSmall">
+                Saldo tersisa
+              </ThemedText>
+              <ThemedText
+                font="medium"
+                type={balance?.toString()?.length > 9 ? "normal" : "subtitle"}>
+                {formatCurrency(balance, "Rp")},-
+              </ThemedText>
+            </View>
+            <View
+              style={{
+                ...styles.topup,
+                borderColor: Colors[colorScheme ?? "light"].border,
+              }}>
+              <AntDesign
+                name={"plussquare"}
+                color={Colors.black}
+                size={24}
+                style={{ marginRight: 10 }}
+              />
+              <ThemedText font="medium" type="semiSmall">
+                Isi Saldo
+              </ThemedText>
+            </View>
+          </View>
+        </View>
+      </View>
+    </BaseLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  flex: { flex: 1, justifyContent: "space-around" },
+  header: {
+    backgroundColor: Colors.warning,
+    height: responsiveHeight(400),
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
+    paddingHorizontal: 27,
+    paddingTop: 25,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  hammer: { width: responsiveWidth(25), height: responsiveHeight(25) },
+  topup: {
+    borderWidth: 1,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    flexDirection: "row",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  balance: {
+    height: responsiveHeight(90),
+    borderRadius: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 20,
   },
 });

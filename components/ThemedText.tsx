@@ -1,60 +1,146 @@
-import { Text, type TextProps, StyleSheet } from 'react-native';
+import { Text, type TextProps, StyleSheet } from "react-native";
 
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { useThemeColor } from "@/hooks/useThemeColor";
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  textAlign?: "auto" | "justify" | "center" | "left" | "right";
+  type?:
+    | "default"
+    | "title"
+    | "defaultSemiBold"
+    | "subtitle"
+    | "link"
+    | "normal"
+    | "semiSmall"
+    | "small";
+  font?:
+    | "thin"
+    | "thinItalic"
+    | "extraLight"
+    | "extraLightItalic"
+    | "light"
+    | "lightItalic"
+    | "regular"
+    | "regularItalic"
+    | "medium"
+    | "mediumItalic"
+    | "semiBold"
+    | "semiBoldItalic"
+    | "bold"
+    | "boldItalic"
+    | "extraBold"
+    | "extraBoldItalic"
+    | "black"
+    | "blackItalic";
 };
 
 export function ThemedText({
   style,
   lightColor,
   darkColor,
-  type = 'default',
+  textAlign,
+  type = "default",
+  font = "regular",
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, "text");
 
   return (
     <Text
-      style={[
-        { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
-        style,
-      ]}
+      style={[styles[font], { color, textAlign }, styles[type], style]}
       {...rest}
     />
   );
 }
 
-const styles = StyleSheet.create({
+const styles: any = StyleSheet.create({
+  small: {
+    fontSize: 10,
+    lineHeight: 15,
+  },
+  semiSmall: {
+    fontSize: 12,
+    lineHeight: 20,
+  },
   default: {
-    fontSize: 16,
+    fontSize: 14,
     lineHeight: 24,
   },
   defaultSemiBold: {
+    fontSize: 14,
+    lineHeight: 24,
+  },
+  normal: {
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: '600',
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
+    fontSize: 36,
+    lineHeight: 50,
   },
   subtitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    lineHeight: 30,
   },
   link: {
     lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
+    fontSize: 14,
+    color: "#0a7ea4",
+  },
+  thin: {
+    fontFamily: "Poppins_100Thin",
+  },
+  thinItalic: {
+    fontFamily: "Poppins_100Thin_Italic",
+  },
+  extraLight: {
+    fontFamily: "Poppins_200ExtraLight",
+  },
+  extraLightItalic: {
+    fontFamily: "Poppins_200ExtraLight_Italic",
+  },
+  light: {
+    fontFamily: "Poppins_300Light",
+  },
+  lightItalic: {
+    fontFamily: "Poppins_300Light_Italic",
+  },
+  regular: {
+    fontFamily: "Poppins_400Regular",
+  },
+  regularItalic: {
+    fontFamily: "Poppins_400Regular_Italic",
+  },
+  medium: {
+    fontFamily: "Poppins_500Medium",
+  },
+  mediumItalic: {
+    fontFamily: "Poppins_500Medium_Italic",
+  },
+  semiBold: {
+    fontFamily: "Poppins_600SemiBold",
+  },
+  semiBoldItalic: {
+    fontFamily: "Poppins_600SemiBold_Italic",
+  },
+  bold: {
+    fontFamily: "Poppins_700Bold",
+  },
+  boldItalic: {
+    fontFamily: "Poppins_700Bold_Italic",
+  },
+  extraBold: {
+    fontFamily: "Poppins_800ExtraBold",
+  },
+  extraBoldItalic: {
+    fontFamily: "Poppins_800ExtraBold_Italic",
+  },
+  black: {
+    fontFamily: "Poppins_900Black",
+  },
+  blackItalic: {
+    fontFamily: "Poppins_900Black_Italic",
   },
 });
