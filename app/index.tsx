@@ -7,17 +7,17 @@ import { Image, ImageBackground, StyleSheet, View } from "react-native";
 export default function AuthScreen() {
   return (
     <ImageBackground
-      source={require("@/assets/images/background.png")}
+      source={require("@/assets/images/background-logo.png")}
       style={styles.background}
       resizeMode="cover">
       <Image
         source={require("@/assets/images/watermark.png")}
         style={styles.watermark}
       />
-      <Image
+      {/* <Image
         source={require("@/assets/images/Logo.png")}
         style={styles.reactLogo}
-      />
+      /> */}
       <View style={styles.button}>
         <ThemedButton
           title="Log In"

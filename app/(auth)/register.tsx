@@ -166,7 +166,7 @@ export default function RegisterScreen() {
           }
         />
         <View style={{ marginHorizontal: 15, marginTop: 28 }}>
-          <ThemedButton type="primary" title="Sign In" onPress={handleSubmit} />
+          <ThemedButton type="primary" title="Sign Up" onPress={handleSubmit} />
           <ThemedText
             font="semiBold"
             style={{ marginVertical: 10 }}

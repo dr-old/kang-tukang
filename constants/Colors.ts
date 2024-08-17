@@ -15,6 +15,7 @@ export const Colors = {
   white: "#ffffff",
   black: "#000000",
   orange: "#E37437",
+  border: "#CCCCCC",
   light: {
     border: "#CCCCCC",
     input: "#F5F4F6",
