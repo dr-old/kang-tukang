@@ -25,8 +25,6 @@ const Form: React.FC<FormContainerProps> = ({
   radius,
 }) => {
   const color = useThemeColor({}, "input");
-  console.log("error", typeof error);
-
   return (
     <View style={[styles.container, style]}>
       <View style={styles.labelContainer}>

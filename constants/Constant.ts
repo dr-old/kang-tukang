@@ -1,7 +1,19 @@
 export const services = [
-  { id: 1, title: "Tool Repairman", image: "" },
-  { id: 2, title: "Daily Handyman", image: "" },
-  { id: 3, title: "AC Repairman", image: "" },
+  {
+    id: 1,
+    title: "AC Repairman",
+    image: require("@/assets/images/ac-repairman.png"),
+  },
+  {
+    id: 2,
+    title: "Daily Handyman",
+    image: require("@/assets/images/daily-handyman.png"),
+  },
+  {
+    id: 3,
+    title: "Tool Repairman",
+    image: require("@/assets/images/tool-repairman.png"),
+  },
 ];
 
 export const trxStatus = [

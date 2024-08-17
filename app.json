@@ -9,9 +9,7 @@
     "userInterfaceStyle": "automatic",
     "jsEngine": "jsc",
     "splash": {
-      "image": "./assets/images/Logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#EABB48"
+      "foregroundImage": "./assets/images/background-logo.png"
     },
     "ios": {
       "supportsTablet": true,
@@ -19,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/Logo.png",
+        "foregroundImage": "./assets/images/icon-palu.png",
         "backgroundColor": "#EABB48"
       },
       "package": "com.danni02.kangtukang"

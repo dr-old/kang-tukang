@@ -32,7 +32,7 @@ export default function SplashScreen({ signin }: SplashScreenProps) {
       if (isLoggedIn) {
         router.replace("/(tabs)");
       } else {
-        router.replace("/(auth)");
+        router.replace("/");
       }
     });
   };
@@ -43,17 +43,17 @@ export default function SplashScreen({ signin }: SplashScreenProps) {
 
   return (
     <ImageBackground
-      source={require("@/assets/images/background.png")}
+      source={require("@/assets/images/background-logo.png")}
       style={styles.background}
       resizeMode="cover">
       <Image
         source={require("@/assets/images/watermark.png")}
         style={styles.watermark}
       />
-      <Image
+      {/* <Image
         source={require("@/assets/images/Logo.png")}
         style={styles.reactLogo}
-      />
+      /> */}
     </ImageBackground>
   );
 }
