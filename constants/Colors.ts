@@ -13,9 +13,11 @@ export const Colors = {
   danger: "#dc3545",
   warning: "#EABB48",
   white: "#ffffff",
+  info: "#2421A2",
   black: "#000000",
   orange: "#E37437",
   border: "#CCCCCC",
+  borderYellow: "#FBCF63",
   light: {
     border: "#CCCCCC",
     input: "#F5F4F6",

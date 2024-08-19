@@ -3,7 +3,7 @@ import Realm from "realm";
 export class Account extends Realm.Object<Account> {
   _id!: Realm.BSON.ObjectId;
   accountName!: string;
-  accountType!: string;
+  accountType!: number;
   balance!: number;
   createdAt!: Date;
   updatedAt!: Date;
@@ -15,7 +15,7 @@ export class Account extends Realm.Object<Account> {
     properties: {
       _id: "objectId",
       accountName: "string",
-      accountType: "string",
+      accountType: "int",
       balance: "double",
       userId: "objectId",
       updatedAt: { type: "date", default: () => new Date() },

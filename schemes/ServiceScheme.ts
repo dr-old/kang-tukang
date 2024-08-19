@@ -2,23 +2,27 @@ import Realm from "realm";
 
 export class Service extends Realm.Object<Service> {
   _id!: Realm.BSON.ObjectId;
-  title!: string;
-  description?: string;
-  price!: number;
   category!: number;
-  groupRefId?: Realm.BSON.ObjectId;
+  createdAt!: Date;
+  description!: string;
+  groupId!: string;
+  price!: number;
+  title!: string;
+  updatedAt!: Date;
 
   static schema: Realm.ObjectSchema = {
     name: "Service",
-    primaryKey: "_id",
     properties: {
       _id: { type: "objectId", default: () => new Realm.BSON.ObjectId() },
-      title: "string",
-      description: "string?",
+      category: "int",
+      description: "string",
+      groupId: "string?",
       price: "double",
-      category: { type: "int" },
-      groupRefId: "objectId?",
+      title: "string",
+      createdAt: { type: "date", default: () => new Date() },
+      updatedAt: { type: "date", default: () => new Date() },
     },
+    primaryKey: "_id",
   };
 }
 

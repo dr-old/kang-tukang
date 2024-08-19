@@ -43,3 +43,16 @@ export const heightPercentageToDP = (percentage: number) => {
 // Example usage:
 // responsiveWidth(100), responsiveHeight(50), responsiveFontSize(16)
 // widthPercentageToDP('50%'), heightPercentageToDP('30%')
+
+export const calculateAspectRatio = (width: number, height: number) => {
+  const gcd = (a: number, b: number): number => {
+    return b === 0 ? a : gcd(b, a % b);
+  };
+
+  const divisor = gcd(width, height);
+  const aspectWidth = width / divisor;
+  const aspectHeight = height / divisor;
+
+  // return `${aspectWidth}:${aspectHeight}`;
+  return { aspectWidth, aspectHeight, aspectRatio: aspectWidth / aspectHeight };
+};

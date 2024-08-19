@@ -1,96 +1,105 @@
-// src/context/AuthProvider.tsx
+import { useApp } from "@realm/react";
+import { useState, useCallback, useEffect } from "react";
+import { Realm } from "@realm/react";
+// src/context/AuthContext.tsx
+import React, { createContext, useContext } from "react";
+import { User } from "realm";
+import { UserStoreType } from "@/utils/types";
+import { useUserStore } from "@/stores/user/userStore";
+import { Redirect } from "expo-router";
 
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useContext,
-  ReactNode,
-} from "react";
-// import { insertUser, getUserByEmail, initDB } from '@/utils/db';
+export const useAuthRealm = (apiKey: string, signin: boolean) => {
+  const app = useApp();
+  const [user, setUser] = useState<any>(null);
+  const [error, setError] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
-// Define the User type
-interface User {
-  email: string;
-  fullname?: string;
-  photo?: string;
-  phone?: string;
-  createdAt: string;
-}
-
-// Define the AuthContext type
-interface AuthContextType {
-  user: User | null;
-  register: (
-    email: string,
-    password: string,
-    fullname?: string,
-    photo?: string,
-    phone?: string
-  ) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-}
-
-// Create a default value for context
-const defaultAuthContextValue: AuthContextType = {
-  user: null,
-  register: async () => {},
-  login: async () => {},
-  logout: () => {},
-};
-
-const AuthContext = createContext<AuthContextType>(defaultAuthContextValue);
-
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
-  const [user, setUser] = useState<User | null>(null);
+  const signInWithKey = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const creds = Realm.Credentials.apiKey(apiKey);
+      const user = await app.logIn(creds);
+      setUser(user.id);
+      console.log("Logged in:", user.id);
+    } catch (err: any) {
+      setError(err);
+      console.error("Login failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [app, apiKey]);
 
   useEffect(() => {
-    // initDB();
-    // Optional: Add logic to check for an existing user session
-  }, []);
+    if (signin) signInWithKey();
+  }, [signInWithKey]);
 
-  const register = async (
-    email: string,
-    password: string,
-    fullname?: string,
-    photo?: string,
-    phone?: string
-  ) => {
-    const createdAt = new Date().toISOString();
+  return {
+    user,
+    error,
+    loading,
+  };
+};
+
+interface AuthContextType {
+  user: User | null;
+  signIn: (data: any) => Promise<void>;
+  signOut: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const app = useApp();
+  const [user, setUser] = useState<User | null>(null);
+  const { setProfile, setLogIn } = useUserStore() as unknown as UserStoreType;
+
+  useEffect(() => {
+    setUser(app.currentUser);
+  }, [app]);
+
+  const signIn = async (data: any) => {
     try {
-      // await insertUser(email, password, fullname, photo, phone, createdAt);
-      setUser({ email, fullname, photo, phone, createdAt });
-    } catch (error) {
-      console.error("Error registering user:", error);
+      setLogIn(true);
+      setProfile(data);
+      setUser(data);
+    } catch (err) {
+      console.error("Failed to log in:", err);
     }
   };
 
-  const login = async (email: string, password: string) => {
-    try {
-      // const user = await getUserByEmail(email);
-      // if (user && user.password === password) {
-      //   setUser(user);
-      // } else {
-      //   throw new Error('Invalid credentials');
-      // }
-    } catch (error) {
-      console.error("Error logging in:", error);
+  const signOut = async () => {
+    if (user) {
+      await user.logOut();
+      setLogIn(false);
+      setProfile(null);
+      setUser(null);
     }
-  };
-
-  const logout = () => {
-    setUser(null);
-    // Optional: Clear any persisted user data
   };
 
   return (
-    <AuthContext.Provider value={{ user, register, login, logout }}>
+    <AuthContext.Provider value={{ user, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+export function useProtected() {
+  const { profile, isLoggedIn } = useUserStore() as unknown as UserStoreType;
+
+  if (!isLoggedIn && !profile?._id) {
+    return <Redirect href="/" />;
+  }
+
+  console.log(profile, isLoggedIn);
+
+  return <Redirect href="/(tabs)" />;
+}

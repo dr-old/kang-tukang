@@ -29,10 +29,11 @@ export const trxStatus = [
 export const env = {
   APP_ID_REALM: "devicesync-dehqp",
   APP_KEY_REALM:
-    "INNbBjbWmKmTjpIrPrcERPvZQrlkmnHBEDtw7i8v5twImRR3suIN6PsLjePjLv1M",
+    "fCDt39qO7HJc0NC1XjQchzITpKax1FPRhk4Nt4PycDTZw17URrPJD6XzO3hJejzK",
   APP_URL_REALM: "https://services.cloud.mongodb.com",
 };
 // "fCDt39qO7HJc0NC1XjQchzITpKax1FPRhk4Nt4PycDTZw17URrPJD6XzO3hJejzK",
+// "INNbBjbWmKmTjpIrPrcERPvZQrlkmnHBEDtw7i8v5twImRR3suIN6PsLjePjLv1M",
 
 export const imageTabBar = [
   require("@/assets/images/home.png"),

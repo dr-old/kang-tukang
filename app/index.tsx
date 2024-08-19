@@ -1,10 +1,18 @@
 import { ThemedButton } from "@/components/ThemedButton";
+import { useUserStore } from "@/stores/user/userStore";
 import { heightPercentageToDP, widthPercentageToDP } from "@/utils/sizing";
-import { router } from "expo-router";
+import { UserStoreType } from "@/utils/types";
+import { Redirect, router } from "expo-router";
 import { Image, ImageBackground, StyleSheet, View } from "react-native";
 // import * as Crypto from "expo-crypto";
 
 export default function AuthScreen() {
+  const { profile, isLoggedIn } = useUserStore() as unknown as UserStoreType;
+
+  if (isLoggedIn && profile?._id) {
+    return <Redirect href="/(tabs)" />;
+  }
+
   return (
     <ImageBackground
       source={require("@/assets/images/background-logo.png")}
@@ -14,20 +22,18 @@ export default function AuthScreen() {
         source={require("@/assets/images/watermark.png")}
         style={styles.watermark}
       />
-      {/* <Image
-        source={require("@/assets/images/Logo.png")}
-        style={styles.reactLogo}
-      /> */}
       <View style={styles.button}>
         <ThemedButton
           title="Log In"
           type="primary"
-          onPress={() => router.push("/(auth)")}
+          onPress={() => {
+            router.push("/login");
+          }}
           fullWidth={true}
         />
         <ThemedButton
           title="Sign Up"
-          onPress={() => router.push("/(auth)/register")}
+          onPress={() => router.push("/register")}
           fullWidth={true}
         />
       </View>

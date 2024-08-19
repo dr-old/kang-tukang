@@ -1,45 +1,44 @@
+import React from "react";
 import { heightPercentageToDP, widthPercentageToDP } from "@/utils/sizing";
-import { useCallback, useEffect } from "react";
-import Realm from "realm";
-import { Image, ImageBackground, StyleSheet } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ImageBackground,
+  StyleSheet,
+  View,
+} from "react-native";
+import { useAuthRealm } from "@/hooks/useAuth";
 import { env } from "@/constants/Constant";
-import { useApp } from "@realm/react";
-import { UserStoreType } from "@/utils/types";
-import { useUserStore } from "@/stores/user/userStore";
-import { router } from "expo-router";
+import { ThemedText } from "@/components/ThemedText";
+import { Colors } from "@/constants/Colors";
 
 interface SplashScreenProps {
   signin: boolean;
 }
 
 export default function SplashScreen({ signin }: SplashScreenProps) {
-  const { isLoggedIn } = useUserStore() as unknown as UserStoreType;
-  const app = useApp();
+  const { user, error, loading } = useAuthRealm(env.APP_KEY_REALM, signin);
 
-  const signInWithKey = useCallback(async () => {
-    const creds = Realm.Credentials.apiKey(env.APP_KEY_REALM);
-    const user = await app.logIn(creds);
-    console.log("Logged in:", user.id);
-  }, [app]);
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.warning} />
+        <ThemedText type="normal" font="medium" style={styles.loadingText}>
+          Signing in...
+        </ThemedText>
+      </View>
+    );
+  }
 
-  const navigateToLogin = async () => {
-    const wait = (time: number) =>
-      new Promise((resolve) => setTimeout(resolve, time));
-
-    return wait(2000).then(async () => {
-      if (signin) await signInWithKey();
-
-      if (isLoggedIn) {
-        router.replace("/(tabs)");
-      } else {
-        router.replace("/");
-      }
-    });
-  };
-
-  useEffect(() => {
-    navigateToLogin();
-  });
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <ThemedText type="normal" font="medium" style={styles.errorText}>
+          Error: {error?.message}
+        </ThemedText>
+      </View>
+    );
+  }
 
   return (
     <ImageBackground
@@ -50,10 +49,6 @@ export default function SplashScreen({ signin }: SplashScreenProps) {
         source={require("@/assets/images/watermark.png")}
         style={styles.watermark}
       />
-      {/* <Image
-        source={require("@/assets/images/Logo.png")}
-        style={styles.reactLogo}
-      /> */}
     </ImageBackground>
   );
 }
@@ -82,5 +77,22 @@ const styles = StyleSheet.create({
     height: 65,
     width: widthPercentageToDP(100),
     resizeMode: "contain",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "red",
   },
 });
