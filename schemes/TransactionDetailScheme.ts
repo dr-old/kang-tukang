@@ -11,7 +11,7 @@ export class TransactionDetail extends Realm.Object<TransactionDetail> {
   updatedAt!: Date;
 
   static schema: Realm.ObjectSchema = {
-    name: "Transaction",
+    name: "TransactionDetail",
     primaryKey: "_id",
     properties: {
       _id: { type: "objectId", default: () => new Realm.BSON.ObjectId() },

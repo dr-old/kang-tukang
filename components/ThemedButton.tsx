@@ -1,5 +1,10 @@
 import React, { ReactNode } from "react";
-import { TouchableOpacity, StyleSheet, ViewStyle } from "react-native";
+import {
+  TouchableOpacity,
+  StyleSheet,
+  ViewStyle,
+  useColorScheme,
+} from "react-native";
 import { Colors } from "@/constants/Colors"; // Assuming you have a Colors file for theme colors
 import { ThemedText } from "./ThemedText";
 import { responsiveHeight } from "@/utils/sizing";
@@ -10,6 +15,8 @@ interface ThemeButton {
   onPress: () => void;
   fullWidth?: boolean;
   mode?: string;
+  height?: number;
+  ph?: number;
   preffix?: ReactNode;
   style?: ViewStyle;
 }
@@ -22,12 +29,23 @@ export function ThemedButton({
   mode,
   preffix,
   style,
+  height,
+  ph,
 }: ThemeButton) {
+  const colorScheme = useColorScheme();
   return (
     <TouchableOpacity
       style={[
-        styles.button,
-        styles[type],
+        {
+          ...styles.button,
+          paddingHorizontal: ph || 16,
+          height: responsiveHeight(height || 48),
+        },
+        type === "default"
+          ? {
+              backgroundColor: Colors[colorScheme ?? "light"].background,
+            }
+          : styles[type],
         style,
         preffix && styles.preffix,
         fullWidth && styles.fullWidthButton, // Apply full width style if true
@@ -46,11 +64,9 @@ export function ThemedButton({
 
 const styles: any = StyleSheet.create({
   button: {
-    paddingHorizontal: 16,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    height: responsiveHeight(48),
   },
   preffix: { flexDirection: "row", gap: 10 },
   // Full Width Style
@@ -63,9 +79,6 @@ const styles: any = StyleSheet.create({
   },
   success: {
     backgroundColor: Colors.success,
-  },
-  default: {
-    backgroundColor: Colors.white,
   },
   danger: {
     backgroundColor: Colors.danger,

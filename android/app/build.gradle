@@ -109,7 +109,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.kangtukang"
+    namespace 'com.danni02.kangtukang'
     defaultConfig {
         applicationId 'com.danni02.kangtukang'
         minSdkVersion rootProject.ext.minSdkVersion

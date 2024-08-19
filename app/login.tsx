@@ -6,6 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import useFormValidation from "@/hooks/useFormValidation";
+import { useSession } from "@/hooks/useSession";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { User } from "@/schemes/UserScheme";
 import { useUserStore } from "@/stores/user/userStore";
@@ -14,6 +15,7 @@ import { UserStoreType } from "@/utils/types";
 import { validationRules as vr } from "@/utils/validateRules";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery, useRealm } from "@realm/react";
+import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 
@@ -23,8 +25,8 @@ const schema = {
 };
 
 export default function LoginScreen() {
-  const { setProfile, setLogIn, profile } =
-    useUserStore() as unknown as UserStoreType;
+  const { setProfile, setLogIn } = useUserStore() as unknown as UserStoreType;
+  const { signIn } = useSession();
   const color = useThemeColor({}, "text");
   const realm = useRealm();
   const users = useQuery(User);
@@ -40,7 +42,7 @@ export default function LoginScreen() {
       () => onPressSignIn()
     );
 
-  const signIn = useCallback(
+  const handleSignIn = useCallback(
     (email: string, password: string) => {
       const item = users.filtered("email == $0", email);
 
@@ -51,8 +53,6 @@ export default function LoginScreen() {
           toast("This password is wrong!");
         } else {
           const user = item[0];
-          console.log("user", user);
-
           setProfile({
             _id: user._id,
             birthday: user.birthday,
@@ -66,6 +66,7 @@ export default function LoginScreen() {
           });
           setLogIn(true);
           toast("Log In is successfull!");
+          router.replace("/");
         }
       }
     },
@@ -74,7 +75,7 @@ export default function LoginScreen() {
 
   const onPressSignIn = useCallback(async () => {
     try {
-      await signIn(values.email.toLowerCase(), values.password);
+      await handleSignIn(values.email.toLowerCase(), values.password);
     } catch (error: any) {
       toast(`Failed to log in: ${error?.message}`);
     }

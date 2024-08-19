@@ -2,6 +2,7 @@ import Realm from "realm";
 
 export class Message extends Realm.Object<Message> {
   id!: Realm.BSON.ObjectId;
+  title!: string;
   message!: string;
   sender!: Realm.BSON.ObjectId;
   receiver!: Realm.BSON.ObjectId;
@@ -12,6 +13,7 @@ export class Message extends Realm.Object<Message> {
     primaryKey: "_id",
     properties: {
       _id: { type: "objectId", default: () => new Realm.BSON.ObjectId() },
+      title: "string",
       message: "string",
       sender: "objectId",
       receiver: "objectId",

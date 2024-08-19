@@ -43,11 +43,6 @@ const styles = StyleSheet.create({
     borderBottomColor: hexToRgba(Colors.border, 0.3),
     overflow: "hidden",
     paddingBottom: 8,
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.3,
-    // shadowRadius: 3.84,
-    // elevation: 5,
     marginBottom: 20,
   },
   image: {

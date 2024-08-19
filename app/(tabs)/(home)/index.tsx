@@ -11,20 +11,32 @@ import { BaseLayout } from "@/components/BaseLayout";
 import { Colors } from "@/constants/Colors";
 import { responsiveHeight, responsiveWidth } from "@/utils/sizing";
 import { Input } from "@/components/Input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AntDesign, Feather, Fontisto } from "@expo/vector-icons";
 import { formatCurrency } from "@/utils/helpers";
 import { services } from "@/constants/Constant";
 import Card from "@/components/Card";
+import { router } from "expo-router";
+import { useModal } from "@/hooks/useModal";
+import ModalImage from "@/components/ModalImage";
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const [search, setSearch] = useState("");
+  const { showModal } = useModal();
+  const balance = 20000;
+
+  const showImage = () => {
+    showModal(<ModalImage />);
+  };
 
   const handleChange = (name: string, value: string) => {
     setSearch(value);
   };
-  const balance = 20000;
+
+  useEffect(() => {
+    showImage();
+  }, []);
 
   return (
     <BaseLayout
@@ -83,7 +95,9 @@ export default function HomeScreen() {
               {formatCurrency(balance, "Rp")},-
             </ThemedText>
           </View>
-          <View
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={showImage}
             style={{
               ...styles.topup,
               borderColor: Colors[colorScheme ?? "light"].border,
@@ -97,7 +111,7 @@ export default function HomeScreen() {
             <ThemedText font="medium" type="semiSmall">
               Isi Saldo
             </ThemedText>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
       <View
@@ -113,7 +127,16 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={index.toString()}
                 activeOpacity={0.8}
-                onPress={() => console.log(index)}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(home)/feature",
+                    params: {
+                      id: item.id,
+                      title: item.title,
+                      image: item.image,
+                    },
+                  })
+                }
                 style={styles.serviceItem}>
                 <Image
                   source={item.image}
