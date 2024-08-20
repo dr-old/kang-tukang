@@ -11,7 +11,7 @@ interface FormContainerProps {
   children: React.ReactNode;
   error?: string[];
   label?: string;
-  style?: object;
+  style?: any;
   radius?: number;
 }
 
@@ -26,7 +26,7 @@ const Form: React.FC<FormContainerProps> = ({
 }) => {
   const color = useThemeColor({}, "input");
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container]}>
       <View style={styles.labelContainer}>
         {label && (
           <ThemedText font="medium" style={styles.label}>
@@ -36,12 +36,17 @@ const Form: React.FC<FormContainerProps> = ({
       </View>
       <View
         style={[
-          styles.inputContainer,
           {
-            backgroundColor: color,
-            borderColor: error && error?.length > 0 ? Colors.danger : color,
+            ...style,
+            backgroundColor: style?.backgroundColor || color,
+            borderColor:
+              error && error?.length > 0
+                ? Colors.danger
+                : style?.borderColor || color,
+            borderWidth: style?.borderWidth || 2,
             borderRadius: radius || 10,
           },
+          styles.inputContainer,
         ]}>
         {iconPrefix}
         {children}
@@ -71,7 +76,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 2,
   },
   errorText: {
     color: "red",

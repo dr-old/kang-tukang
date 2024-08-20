@@ -7,6 +7,7 @@ export class Cart extends Realm.Object<Cart> {
   notes?: string;
   price!: number;
   qty!: number;
+  category!: number;
   serviceId!: Realm.BSON.ObjectId;
   title!: string;
   updatedAt!: Date;
@@ -22,6 +23,7 @@ export class Cart extends Realm.Object<Cart> {
       notes: "string?",
       price: "double",
       qty: "int",
+      category: "int",
       serviceId: "objectId",
       title: "string",
       updatedAt: { type: "date", default: () => new Date() },

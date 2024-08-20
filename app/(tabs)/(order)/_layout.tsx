@@ -5,7 +5,10 @@ import { useColorScheme } from "react-native";
 
 const OrderStack = () => {
   const colorScheme = useColorScheme();
-  const dash = [{ title: "index", header: true }];
+  const dash = [
+    { title: "index", header: true },
+    { title: "detail", header: true },
+  ];
   return (
     <Stack>
       {dash.map((item: any, index: number) => (

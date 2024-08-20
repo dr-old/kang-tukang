@@ -9,6 +9,7 @@ export class User extends Realm.Object<User> {
   photo!: string;
   birthday!: string;
   address!: string;
+  role!: string;
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -24,6 +25,7 @@ export class User extends Realm.Object<User> {
       photo: "string?",
       birthday: "string?",
       address: "string?",
+      role: { type: "string", default: "user" },
       createdAt: { type: "date", default: () => new Date() },
       updatedAt: { type: "date", default: () => new Date() },
     },

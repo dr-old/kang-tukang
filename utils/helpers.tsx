@@ -24,3 +24,14 @@ export const hexToRgba = (hex: string, opacity: any) => {
 export const formatCurrency = (number: number, prefix: string) => {
   return prefix + number.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
 };
+
+// Function to generate a unique transaction ID
+export const generateTrxId = (): string => {
+  const timestamp = Date.now();
+  // Generate a random number between 1000 and 9999
+  const randomComponent = Math.floor(1000 + Math.random() * 9000);
+  // Combine them to create a unique trxId
+  const trxId = `TRX-${timestamp}-${randomComponent}`;
+
+  return trxId;
+};

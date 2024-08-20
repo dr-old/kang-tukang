@@ -1,83 +1,65 @@
 import React, { ReactNode } from "react";
 import {
-  TouchableOpacity,
+  View,
   StyleSheet,
   ViewStyle,
+  TextStyle,
   useColorScheme,
 } from "react-native";
-import { Colors } from "@/constants/Colors"; // Assuming you have a Colors file for theme colors
+import { Colors } from "@/constants/Colors"; // Adjust the path as needed
 import { ThemedText } from "./ThemedText";
-import { responsiveHeight } from "@/utils/sizing";
 
-interface ThemeButton {
+interface ThemedBadgeProps {
   title: string;
-  type?: string;
-  onPress: () => void;
-  fullWidth?: boolean;
-  disabled?: boolean;
-  mode?: string;
-  height?: number;
-  ph?: number;
+  type?: "default" | "primary" | "success" | "danger" | "warning" | "info";
   preffix?: ReactNode;
   style?: ViewStyle;
+  textStyle?: TextStyle;
+  alignSelf?: "flex-start" | "flex-end" | "center";
 }
 
-export function ThemedButton({
+export function ThemedBadge({
   title,
   type = "default",
-  onPress,
-  fullWidth = false,
-  disabled,
-  mode,
   preffix,
   style,
-  height,
-  ph,
-}: ThemeButton) {
+  textStyle,
+  alignSelf = "flex-start",
+}: ThemedBadgeProps) {
   const colorScheme = useColorScheme();
   return (
-    <TouchableOpacity
+    <View
       style={[
-        {
-          ...styles.button,
-          opacity: disabled ? 0.5 : 1,
-          paddingHorizontal: ph || 16,
-          height: responsiveHeight(height || 48),
-        },
+        styles.badge,
+        { alignSelf },
         type === "default"
           ? {
               backgroundColor: Colors[colorScheme ?? "light"].background,
             }
           : styles[type],
         style,
-        preffix && styles.preffix,
-        fullWidth && styles.fullWidthButton, // Apply full width style if true
-      ]}
-      disabled={disabled}
-      onPress={onPress}
-      activeOpacity={0.8}>
+      ]}>
       {preffix}
       <ThemedText
-        font={mode === "sosmed" ? "regular" : "medium"}
-        style={[styles[`${type}Text`]]}>
+        font={"medium"}
+        type="semiSmall"
+        style={[styles[`${type}Text`], textStyle]}>
         {title}
       </ThemedText>
-    </TouchableOpacity>
+    </View>
   );
 }
 
-const styles: any = StyleSheet.create({
-  button: {
-    borderRadius: 10,
+const styles = StyleSheet.create({
+  badge: {
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 5,
   },
   preffix: { flexDirection: "row", gap: 10 },
-  // Full Width Style
-  fullWidthButton: {
-    width: "100%", // Makes the button full width
-  },
-  // Button Styles
+  // Badge Styles
   primary: {
     backgroundColor: Colors.primary,
   },
@@ -95,7 +77,7 @@ const styles: any = StyleSheet.create({
   },
   // Text Colors
   primaryText: {
-    color: Colors.light.textYellow,
+    color: Colors.white,
   },
   successText: {
     color: Colors.white,

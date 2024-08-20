@@ -16,6 +16,7 @@ interface InputProps {
   preffix?: ReactNode;
   suffix?: ReactNode;
   radius?: number;
+  style?: any;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -31,6 +32,7 @@ export const Input: React.FC<InputProps> = ({
   preffix,
   suffix,
   radius,
+  style,
 }) => {
   return (
     <Form
@@ -38,7 +40,8 @@ export const Input: React.FC<InputProps> = ({
       error={error}
       radius={radius}
       iconPrefix={preffix}
-      iconSuffix={suffix}>
+      iconSuffix={suffix}
+      style={style}>
       <TextInput
         value={value}
         onChangeText={(text) => onChange(name, text)}

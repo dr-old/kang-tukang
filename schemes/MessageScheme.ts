@@ -6,7 +6,10 @@ export class Message extends Realm.Object<Message> {
   message!: string;
   sender!: Realm.BSON.ObjectId;
   receiver!: Realm.BSON.ObjectId;
+  status!: number;
+  type!: number;
   createdAt!: Date;
+  updatedAt!: Date;
 
   static schema: Realm.ObjectSchema = {
     name: "Message",
@@ -17,7 +20,10 @@ export class Message extends Realm.Object<Message> {
       message: "string",
       sender: "objectId",
       receiver: "objectId",
+      status: "int",
+      type: "int",
       createdAt: { type: "date", default: () => new Date() },
+      updatedAt: { type: "date", default: () => new Date() },
     },
   };
 }

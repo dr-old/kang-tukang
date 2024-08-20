@@ -4,9 +4,11 @@ import ModalAlert from "./ModalAlert";
 import { useModal } from "@/hooks/useModal";
 
 const HeaderRight = (props: any) => {
-  const { showModal } = useModal();
+  const { showModal, hideModal } = useModal();
 
-  const signOut = () => {};
+  const signOut = () => {
+    hideModal();
+  };
 
   const handleSignOut = () => {
     showModal(

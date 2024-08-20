@@ -1,127 +1,43 @@
-import { Image, StyleSheet, View, useColorScheme } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
-import { useQuery, useRealm } from "@realm/react";
-import { Service } from "@/schemes/ServiceScheme";
-import { useEffect } from "react";
-import { services } from "@/constants/Constant";
+import { Realm, useQuery, useRealm } from "@realm/react";
 import moment from "moment";
+import { useUserStore } from "@/stores/user/userStore";
+import { UserStoreType } from "@/utils/types";
+import { Transaction } from "@/schemes/TransactionScheme";
+import { useEffect } from "react";
+import { services, trxStatus } from "@/constants/Constant";
+import NotFound from "@/components/NotFound";
+import { router } from "expo-router";
 
 export default function OrderScreen() {
+  const { profile } = useUserStore() as unknown as UserStoreType;
+  const userId = new Realm.BSON.ObjectId(profile?._id);
   const realm = useRealm();
-  const service = useQuery(Service);
   const colorScheme = useColorScheme();
-
-  // function createService(
-  //   title: string,
-  //   description: string,
-  //   price: number,
-  //   category: number,
-  //   groupId?: string
-  // ) {
-  //   realm.write(() => {
-  //     return realm.create(Service, {
-  //       title,
-  //       description,
-  //       price,
-  //       category,
-  //       groupId: groupId || "",
-  //     });
-  //   });
-  // }
-
-  // async function handleCreate() {
-  //   try {
-  //     createService(
-  //       "Daily Repairman",
-  //       "General maintenance and repair services.",
-  //       70000,
-  //       1
-  //     );
-  //     createService(
-  //       "Plumbing Fix",
-  //       "Fixing and installing pipes and plumbing systems.",
-  //       50000,
-  //       2
-  //     );
-  //     createService(
-  //       "Electrical Services",
-  //       "Electrical repairs and installations.",
-  //       75000,
-  //       3
-  //     );
-  //     createService(
-  //       "Gardening",
-  //       "Lawn care, gardening, and landscaping services.",
-  //       20000,
-  //       1
-  //     );
-  //     createService(
-  //       "Cleaning Services",
-  //       "Professional cleaning services for homes and offices.",
-  //       30000,
-  //       2
-  //     );
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // }
-
-  // function insertSpecificServices() {
-  //   createService(
-  //     "Daily Repairman",
-  //     "General maintenance and repair services.",
-  //     70000,
-  //     1
-  //   );
-  //   createService(
-  //     "Plumbing Fix",
-  //     "Fixing and installing pipes and plumbing systems.",
-  //     50000,
-  //     2
-  //   );
-  //   createService(
-  //     "Electrical Services",
-  //     "Electrical repairs and installations.",
-  //     75000,
-  //     3
-  //   );
-  //   createService(
-  //     "Gardening",
-  //     "Lawn care, gardening, and landscaping services.",
-  //     20000,
-  //     1
-  //   );
-  //   createService(
-  //     "Cleaning Services",
-  //     "Professional cleaning services for homes and offices.",
-  //     30000,
-  //     2
-  //   );
-  // }
-
-  // console.log("service", service);
-
-  // // useEffect(() => {
-  // //   insertSpecificServices();
-  // // }, []);
+  const trx = useQuery(
+    {
+      type: Transaction,
+      query: (collection) =>
+        collection.filtered("userId == $0", userId).sorted("createdAt", true),
+    },
+    [userId]
+  );
 
   useEffect(() => {
-    if (realm) {
-      realm.subscriptions
-        .update((mutableSubs) => {
-          mutableSubs.add(realm.objects("Service"));
-        })
-        .then(() => {
-          console.log("Flexible Sync subscription created.");
-        })
-        .catch((error) => {
-          console.error("Error creating subscription:", error);
-        });
-    }
-  }, [realm]);
+    realm.subscriptions.update((mutableSubs) => {
+      mutableSubs.add(trx);
+    });
+  }, [realm, trx]);
 
   return (
     <BaseLayout
@@ -139,33 +55,44 @@ export default function OrderScreen() {
           ...styles.order,
           backgroundColor: Colors[colorScheme ?? "light"].background,
         }}>
-        {service.map((item: any, index: number) => {
-          const category = services.find((i) => i.id === item.category);
-          return (
-            <View
-              key={index.toString()}
-              style={{
-                ...styles.orderItem,
-                borderBottomColor:
-                  service.length - 1 === index
-                    ? "transparent"
-                    : Colors.borderYellow,
-              }}>
-              <Image source={category?.image} style={styles.orderImage} />
-              <View style={{ flex: 1 }}>
-                <ThemedText font="medium" type="default">
-                  {category?.title}
-                </ThemedText>
-                <ThemedText font="regular" type="semiSmall">
-                  {category?.title}
-                </ThemedText>
-                <ThemedText font="regular" type="semiSmall">
-                  {moment(item.createdAt).format("DD MMMM YYYY HH:mm")}
-                </ThemedText>
-              </View>
-            </View>
-          );
-        })}
+        {trx?.length > 0 ? (
+          trx.map((item: any, index: number) => {
+            const category = services.find((i) => i.id === item.category);
+            const status = trxStatus.find((i) => i.id === item.status);
+            return (
+              <TouchableOpacity
+                key={index.toString()}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(order)/detail",
+                    params: { trxId: item.trxId },
+                  })
+                }
+                style={{
+                  ...styles.orderItem,
+                  borderBottomColor:
+                    trx.length - 1 === index
+                      ? "transparent"
+                      : Colors.borderYellow,
+                }}>
+                <Image source={category?.image} style={styles.orderImage} />
+                <View style={{ flex: 1 }}>
+                  <ThemedText font="medium" type="default">
+                    {category?.title}
+                  </ThemedText>
+                  <ThemedText font="regular" type="semiSmall">
+                    {status?.title}
+                  </ThemedText>
+                  <ThemedText font="regular" type="semiSmall">
+                    {moment(item.createdAt).format("DD MMMM YYYY HH:mm")}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+            );
+          })
+        ) : (
+          <NotFound />
+        )}
       </View>
     </BaseLayout>
   );

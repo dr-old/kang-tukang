@@ -62,6 +62,7 @@ export default function LoginScreen() {
             phone: user.phone,
             photo: user.photo,
             address: user.address,
+            role: user.role,
             updatedAt: user.updatedAt,
           });
           setLogIn(true);

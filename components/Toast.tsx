@@ -16,7 +16,7 @@ import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
 
 export interface ToastStatus {
-  status: "success" | "error" | "info";
+  status: "success" | "error" | "warning" | "info";
 }
 
 interface ToastProps {
@@ -90,16 +90,12 @@ const Toast: React.FC<ToastProps> = ({
   }
 
   let backgroundColor = Colors.primary;
-  let icon = "information-circle";
   if (status === "error") {
     backgroundColor = Colors.danger;
-    icon = "close-circle";
   } else if (status === "warning") {
     backgroundColor = Colors.warning;
-    icon = "warning";
   } else if (status === "success") {
     backgroundColor = Colors.success;
-    icon = "checkmark-circle";
   }
 
   if (type == "modal") {
@@ -139,7 +135,7 @@ const Toast: React.FC<ToastProps> = ({
     <Animatable.View
       ref={viewRef}
       style={[styles.container, { opacity: fadeAnim }]}>
-      <Pressable onPress={onHide} style={[styles.shadow, { borderRadius: 14 }]}>
+      <Pressable onPress={onHide} style={[styles.shadow, { borderRadius: 15 }]}>
         <View style={styles.rowCenter}>
           <Ionicons
             name={
@@ -197,7 +193,7 @@ const styling = (theme: any) =>
     contentCenter: {
       height: Dimensions.get("window").height * 0.3,
       width: Dimensions.get("window").height * 0.3,
-      borderRadius: 36,
+      borderRadius: 30,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -212,12 +208,7 @@ const styling = (theme: any) =>
       alignItems: "center",
       paddingVertical: 16,
       paddingHorizontal: 12,
-      //   backgroundColor:
-      //     theme.name === "light" ? theme.colors.dark : theme.colors.white,
-      //   shadowColor:
-      //     theme.name === "light"
-      //       ? hexToRgba(theme.colors.black, 0.5)
-      //       : theme.colors.white,
+      backgroundColor: theme.background,
       shadowOffset: {
         width: 0,
         height: 5,

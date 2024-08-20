@@ -19,15 +19,54 @@ import Card from "@/components/Card";
 import { router } from "expo-router";
 import { useModal } from "@/hooks/useModal";
 import ModalImage from "@/components/ModalImage";
+import { useToast } from "@/hooks/useToast";
+import ModalTopup from "@/components/ModalTopup";
+import { Realm, useQuery, useRealm } from "@realm/react";
+import { UserStoreType } from "@/utils/types";
+import { useUserStore } from "@/stores/user/userStore";
+import { Account } from "@/schemes/AccountScheme";
+import { AccountLog } from "@/schemes/AccountLogScheme";
+import { Message } from "@/schemes/MessageScheme";
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const [search, setSearch] = useState("");
   const { showModal } = useModal();
   const balance = 20000;
+  const { showToast } = useToast();
+  const { profile } = useUserStore() as unknown as UserStoreType;
+  const userId = new Realm.BSON.ObjectId(profile?._id);
+  const realm = useRealm();
+  const account = useQuery(
+    {
+      type: Account,
+      query: (collection) => collection.filtered("userId == $0", userId),
+    },
+    [userId]
+  );
+  const accountLog = useQuery(
+    {
+      type: AccountLog,
+      query: (collection) => collection.filtered("userId == $0", userId),
+    },
+    [userId]
+  );
+
+  const message = useQuery(
+    {
+      type: Message,
+      query: (collection) => collection.filtered("receiver == $0", userId),
+    },
+    [userId]
+  );
 
   const showImage = () => {
     showModal(<ModalImage />);
+  };
+
+  const showTopup = () => {
+    // showToast("Top-up successfully!", "success", "modal");
+    showModal(<ModalTopup />);
   };
 
   const handleChange = (name: string, value: string) => {
@@ -37,6 +76,14 @@ export default function HomeScreen() {
   useEffect(() => {
     showImage();
   }, []);
+
+  useEffect(() => {
+    realm.subscriptions.update((mutableSubs) => {
+      mutableSubs.add(account);
+      mutableSubs.add(accountLog);
+      mutableSubs.add(message);
+    });
+  }, [realm, account, accountLog, message]);
 
   return (
     <BaseLayout
@@ -92,12 +139,12 @@ export default function HomeScreen() {
             <ThemedText
               font="medium"
               type={balance?.toString()?.length > 9 ? "normal" : "subtitle"}>
-              {formatCurrency(balance, "Rp")},-
+              {formatCurrency(account[0]?.balance || 0, "Rp")},-
             </ThemedText>
           </View>
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={showImage}
+            onPress={showTopup}
             style={{
               ...styles.topup,
               borderColor: Colors[colorScheme ?? "light"].border,
