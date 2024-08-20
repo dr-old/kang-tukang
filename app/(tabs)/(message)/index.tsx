@@ -3,127 +3,34 @@ import { StyleSheet, View, useColorScheme } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
-import { useQuery, useRealm } from "@realm/react";
-import { Service } from "@/schemes/ServiceScheme";
+import { Realm, useQuery, useRealm } from "@realm/react";
 import { useEffect } from "react";
-import { services } from "@/constants/Constant";
 import moment from "moment";
 import { AntDesign } from "@expo/vector-icons";
 import Divider from "@/components/Divider";
+import { useUserStore } from "@/stores/user/userStore";
+import { UserStoreType } from "@/utils/types";
+import { Message } from "@/schemes/MessageScheme";
 
 export default function MessageScreen() {
   const realm = useRealm();
-  const service = useQuery(Service);
   const colorScheme = useColorScheme();
-
-  // function createService(
-  //   title: string,
-  //   description: string,
-  //   price: number,
-  //   category: number,
-  //   groupId?: string
-  // ) {
-  //   realm.write(() => {
-  //     return realm.create(Service, {
-  //       title,
-  //       description,
-  //       price,
-  //       category,
-  //       groupId: groupId || "",
-  //     });
-  //   });
-  // }
-
-  // async function handleCreate() {
-  //   try {
-  //     createService(
-  //       "Daily Repairman",
-  //       "General maintenance and repair services.",
-  //       70000,
-  //       1
-  //     );
-  //     createService(
-  //       "Plumbing Fix",
-  //       "Fixing and installing pipes and plumbing systems.",
-  //       50000,
-  //       2
-  //     );
-  //     createService(
-  //       "Electrical Services",
-  //       "Electrical repairs and installations.",
-  //       75000,
-  //       3
-  //     );
-  //     createService(
-  //       "Gardening",
-  //       "Lawn care, gardening, and landscaping services.",
-  //       20000,
-  //       1
-  //     );
-  //     createService(
-  //       "Cleaning Services",
-  //       "Professional cleaning services for homes and offices.",
-  //       30000,
-  //       2
-  //     );
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // }
-
-  // function insertSpecificServices() {
-  //   createService(
-  //     "Daily Repairman",
-  //     "General maintenance and repair services.",
-  //     70000,
-  //     1
-  //   );
-  //   createService(
-  //     "Plumbing Fix",
-  //     "Fixing and installing pipes and plumbing systems.",
-  //     50000,
-  //     2
-  //   );
-  //   createService(
-  //     "Electrical Services",
-  //     "Electrical repairs and installations.",
-  //     75000,
-  //     3
-  //   );
-  //   createService(
-  //     "Gardening",
-  //     "Lawn care, gardening, and landscaping services.",
-  //     20000,
-  //     1
-  //   );
-  //   createService(
-  //     "Cleaning Services",
-  //     "Professional cleaning services for homes and offices.",
-  //     30000,
-  //     2
-  //   );
-  // }
-
-  // console.log("service", service);
-
-  // // useEffect(() => {
-  // //   insertSpecificServices();
-  // // }, []);
+  const { profile } = useUserStore() as unknown as UserStoreType;
+  const userId = new Realm.BSON.ObjectId(profile?._id);
+  const message = useQuery(
+    {
+      type: Message,
+      query: (collection) =>
+        collection.filtered("receiver == $0", userId).sorted("createdAt", true),
+    },
+    [userId]
+  );
 
   useEffect(() => {
-    if (realm) {
-      realm.subscriptions
-        .update((mutableSubs) => {
-          mutableSubs.add(realm.objects("Service"));
-        })
-        .then(() => {
-          console.log("Flexible Sync subscription created.");
-        })
-        .catch((error) => {
-          console.error("Error creating subscription:", error);
-        });
-    }
-  }, [realm]);
+    realm.subscriptions.update((mutableSubs) => {
+      mutableSubs.add(message);
+    });
+  }, [realm, message]);
 
   return (
     <BaseLayout
@@ -141,15 +48,15 @@ export default function MessageScreen() {
           ...styles.order,
           backgroundColor: Colors[colorScheme ?? "light"].background,
         }}>
-        {service.map((item: any, index: number) => {
-          const category = services.find((i) => i.id === item.category);
+        {message.map((item: any, index: number) => {
+          // const category = services.find((i) => i.id === item.category);
           return (
             <View
               key={index.toString()}
               style={{
                 ...styles.orderItem,
                 borderBottomColor:
-                  service.length - 1 === index
+                  message.length - 1 === index
                     ? "transparent"
                     : Colors.borderYellow,
               }}>
@@ -161,10 +68,10 @@ export default function MessageScreen() {
               <Divider width={18} height={0} />
               <View style={{ flex: 1 }}>
                 <ThemedText font="medium" type="default">
-                  {category?.title}
+                  {item.title}
                 </ThemedText>
                 <ThemedText font="regular" type="semiSmall">
-                  {category?.title}
+                  {item.message}
                 </ThemedText>
                 <ThemedText font="regular" type="semiSmall">
                   {moment(item.createdAt).format("DD MMMM YYYY HH:mm")}

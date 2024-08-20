@@ -1,108 +1,109 @@
-import React, { useState, forwardRef, useImperativeHandle } from "react";
-import {
-  StyleSheet,
-  View,
-  Modal,
-  Dimensions,
-  Pressable,
-  useColorScheme,
-} from "react-native";
-import * as Animatable from "react-native-animatable";
+import React, { ReactNode } from "react";
+import { Dimensions, StyleSheet, View, useColorScheme } from "react-native";
+import { useModal } from "../hooks/useModal";
 import { hexToRgba } from "../utils/helpers";
-import { Colors } from "@/constants/Colors";
 import { ThemedText } from "./ThemedText";
+import { Colors } from "@/constants/Colors";
 import Divider from "./Divider";
+import { ThemedButton } from "./ThemedButton";
 
-interface ModalContainerProps {
+interface ModalAlertProps {
   title: string;
   subtitle?: string;
-  width?: number;
-  height?: number;
-  children: React.ReactNode;
+  children?: ReactNode;
+  onConfirm: () => void;
+  onCancel?: () => void | undefined;
+  labelConfirm?: string;
+  labelCancel?: string;
 }
 
-export interface ModalContainerRef {
-  show: () => void;
-  hide: () => void;
-}
-
-const ModalContainer: React.ForwardRefRenderFunction<
-  ModalContainerRef,
-  ModalContainerProps
-> = ({ title, subtitle, width, height, children }, ref) => {
-  const [modalVisible, setModalVisible] = useState(false);
+const ModalContainer: React.FC<ModalAlertProps> = ({
+  title,
+  subtitle,
+  children,
+  onConfirm,
+  onCancel,
+  labelConfirm,
+  labelCancel,
+}) => {
+  const { hideModal } = useModal();
   const colorScheme = useColorScheme();
-  const styles = styling(Colors[colorScheme ?? "light"]);
+  const theme = Colors[colorScheme ?? "light"];
+  const styles = styling(theme);
 
-  useImperativeHandle(ref, () => ({
-    show: () => {
-      setModalVisible(true);
-    },
-    hide: () => {
-      setModalVisible(false);
-    },
-  }));
+  const handleCancel = () => {
+    hideModal();
+    onCancel?.();
+  };
+
+  const handleConfirm = () => {
+    // hideModal();
+    onConfirm?.();
+  };
 
   return (
-    <Modal
-      animationType="fade"
-      transparent
-      visible={modalVisible}
-      onRequestClose={() => ref?.current?.hide()}>
-      <Pressable onPress={() => ref?.current?.hide()} style={styles.container}>
-        <Animatable.View
-          animation={modalVisible ? "bounceIn" : "bounceOut"}
-          duration={300}
-          style={styles.wrapper}>
-          <View style={styles.headerModal}>
-            <ThemedText font="semiBold" type="normal">
-              {title}
-            </ThemedText>
-            {subtitle && (
-              <>
-                <Divider height={16} />
-                <ThemedText font="light">{subtitle}</ThemedText>
-              </>
+    <View style={styles.container}>
+      <View style={styles.headerModal}>
+        <ThemedText font="semiBold" type="normal">
+          {title}
+        </ThemedText>
+        {subtitle && (
+          <>
+            <Divider height={16} />
+            <ThemedText font="light">{subtitle}</ThemedText>
+          </>
+        )}
+      </View>
+      <View style={styles.body}>
+        {children}
+        {(labelConfirm || labelCancel) && (
+          <View style={styles.button}>
+            {labelConfirm && (
+              <ThemedButton
+                height={40}
+                type="primary"
+                title={labelConfirm}
+                onPress={handleConfirm}
+              />
+            )}
+            {labelConfirm && labelCancel && <Divider height={0} width={16} />}
+            {labelCancel && (
+              <ThemedButton
+                height={40}
+                type="default"
+                title={labelCancel}
+                onPress={handleCancel}
+              />
             )}
           </View>
-          <View style={styles.body}>
-            <View
-              style={{
-                minHeight: 50,
-                maxHeight: height
-                  ? height
-                  : Dimensions.get("screen").height * 0.8,
-              }}>
-              {children}
-            </View>
-          </View>
-        </Animatable.View>
-      </Pressable>
-    </Modal>
+        )}
+      </View>
+    </View>
   );
 };
 
 const styling = (theme: any) =>
   StyleSheet.create({
+    button: {
+      flexDirection: "row-reverse",
+      marginTop: 16,
+      paddingTop: 16,
+      paddingHorizontal: 20,
+      borderTopWidth: 1,
+      borderTopColor: hexToRgba(Colors.border, 0.5),
+    },
     body: {
       paddingTop: 16,
+      minHeight: 50,
+      maxHeight: Dimensions.get("screen").height * 0.8,
     },
     container: {
-      flex: 1,
-      backgroundColor: hexToRgba(Colors.black, 0.7),
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 16,
-    },
-    wrapper: {
-      width: "100%",
-      backgroundColor: theme.background,
-      borderRadius: 8,
-      padding: 16,
+      maxWidth: Dimensions.get("screen").width * 0.8,
+      paddingVertical: 20,
     },
     headerModal: {
       alignItems: "center",
     },
   });
 
-export default forwardRef(ModalContainer);
+export default ModalContainer;

@@ -5,7 +5,7 @@ export class TransactionLog extends Realm.Object<TransactionLog> {
   trxId!: string;
   status!: number;
   requesterId!: Realm.BSON.ObjectId;
-  responderId!: Realm.BSON.ObjectId;
+  responderId!: string;
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -17,7 +17,7 @@ export class TransactionLog extends Realm.Object<TransactionLog> {
       trxId: "string",
       status: "int",
       requesterId: "objectId",
-      responderId: "objectId",
+      responderId: "string?",
       createdAt: { type: "date", default: () => new Date() },
       updatedAt: { type: "date", default: () => new Date() },
     },

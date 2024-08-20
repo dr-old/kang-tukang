@@ -14,6 +14,7 @@ interface ServiceCardProps {
   title: string;
   description?: string;
   price: number;
+  category?: number;
   border?: string;
 }
 
@@ -22,6 +23,7 @@ const ServiceCardMultiple = ({
   title,
   description,
   price,
+  category,
   border,
 }: ServiceCardProps) => {
   const {
@@ -90,6 +92,7 @@ const ServiceCardMultiple = ({
                 description,
                 notes: "",
                 price,
+                category,
               })
             }
             style={styles.buttonCircle}>

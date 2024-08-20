@@ -1,27 +1,27 @@
 import Realm from "realm";
 
-export class Account extends Realm.Object<Account> {
+export class AccountLog extends Realm.Object<AccountLog> {
   _id!: Realm.BSON.ObjectId;
-  accountName!: string;
+  accountId!: Realm.BSON.ObjectId;
   accountType!: number;
-  balance!: number;
   createdAt!: Date;
-  updatedAt!: Date;
+  status!: number;
+  balance!: number;
   userId!: Realm.BSON.ObjectId;
 
   static schema: Realm.ObjectSchema = {
-    name: "Account",
+    name: "AccountLog",
     primaryKey: "_id",
     properties: {
       _id: { type: "objectId", default: () => new Realm.BSON.ObjectId() },
-      accountName: "string",
+      accountId: "objectId",
       accountType: "int",
+      status: "int",
       balance: "double",
       userId: "objectId",
-      updatedAt: { type: "date", default: () => new Date() },
       createdAt: { type: "date", default: () => new Date() },
     },
   };
 }
 
-export const accountScheme = [Account];
+export const accountLogScheme = [AccountLog];

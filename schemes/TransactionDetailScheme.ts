@@ -5,6 +5,7 @@ export class TransactionDetail extends Realm.Object<TransactionDetail> {
   trxId!: string;
   serviceId!: Realm.BSON.ObjectId;
   qty!: number;
+  price!: number;
   subtotal!: number;
   description?: string;
   createdAt!: Date;
@@ -18,6 +19,7 @@ export class TransactionDetail extends Realm.Object<TransactionDetail> {
       trxId: "string",
       serviceId: "objectId",
       qty: "int",
+      price: "double",
       subtotal: "double",
       description: "string?",
       createdAt: { type: "date", default: () => new Date() },

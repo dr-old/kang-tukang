@@ -19,6 +19,7 @@ export const useCartActions = () => {
         notes: service.notes,
         price: service.price,
         qty: 1,
+        category: service.category,
       });
     });
   };
@@ -54,23 +55,34 @@ export const useCartActions = () => {
     return item ? item.qty : 0;
   };
 
-  const getTotalQuantity = (serviceId: string) => {
+  const getTotalQuantity = (category: number) => {
     const items = realm
       .objects(Cart)
-      .filtered("userId == $0 AND serviceId == $1", userId, serviceId);
+      .filtered("userId == $0 && category == $1", userId, category);
     return items.reduce((total, item) => total + item.qty, 0);
   };
 
-  const getTotalPrice = (serviceId: string) => {
+  const getTotalPrice = (category: number) => {
     const items = realm
       .objects(Cart)
-      .filtered("userId == $0 AND serviceId == $1", userId, serviceId);
+      .filtered("userId == $0 && category == $1", userId, category);
     return items.reduce((total, item) => total + item.price * item.qty, 0);
   };
 
-  const getTotalPriceByUser = () => {
-    const items = realm.objects(Cart).filtered("userId == $0", userId);
+  const getTotalPriceByUser = (category: number) => {
+    const items = realm
+      .objects(Cart)
+      .filtered("userId == $0 && category == $1", userId, category);
     return items.reduce((total, item) => total + item.price * item.qty, 0);
+  };
+
+  const deleteAllByUser = (category: number) => {
+    realm.write(() => {
+      const items = realm
+        .objects(Cart)
+        .filtered("userId == $0 && category == $1", userId, category);
+      realm.delete(items);
+    });
   };
 
   return {
@@ -81,5 +93,6 @@ export const useCartActions = () => {
     getTotalQuantity,
     getTotalPrice,
     getTotalPriceByUser,
+    deleteAllByUser,
   };
 };

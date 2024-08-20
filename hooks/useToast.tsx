@@ -1,6 +1,5 @@
 import Toast from "@/components/Toast";
 import React, { createContext, useState, useContext, ReactNode } from "react";
-import { StyleSheet } from "react-native";
 
 // Toast Context
 interface ToastContextProps {
@@ -51,20 +50,3 @@ export const useToast = (): ToastContextProps => {
   }
   return context;
 };
-
-// Example styles
-const styles = StyleSheet.create({
-  toastContainer: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    padding: 10,
-    borderRadius: 8,
-  },
-  toastText: {
-    color: "white",
-    fontSize: 16,
-  },
-});

@@ -2,6 +2,7 @@ import Realm from "realm";
 
 export class Transaction extends Realm.Object<Transaction> {
   _id!: Realm.BSON.ObjectId;
+  userId!: Realm.BSON.ObjectId;
   trxId!: string;
   description?: string;
   totalPrice!: number;
@@ -9,6 +10,7 @@ export class Transaction extends Realm.Object<Transaction> {
   createdAt!: Date;
   updatedAt!: Date;
   status!: number;
+  category!: number;
 
   static schema: Realm.ObjectSchema = {
     name: "Transaction",
@@ -19,6 +21,7 @@ export class Transaction extends Realm.Object<Transaction> {
       description: "string?",
       totalPrice: "double",
       totalQty: "int",
+      category: "int",
       userId: "objectId",
       createdAt: { type: "date", default: () => new Date() },
       updatedAt: { type: "date", default: () => new Date() },
