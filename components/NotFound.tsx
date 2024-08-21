@@ -1,11 +1,22 @@
 import { AntDesign } from "@expo/vector-icons";
-import { View, useColorScheme } from "react-native";
+import { View } from "react-native";
 import Divider from "./Divider";
 import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
-const NotFound = () => {
-  const colorScheme = useColorScheme();
+interface NotFoundProps {
+  iconSize?: number;
+  enableIcon?: boolean;
+  ph?: number;
+}
+
+const NotFound = ({
+  enableIcon = true,
+  iconSize = 70,
+  ph = 50,
+}: NotFoundProps) => {
+  const { colorScheme } = useThemeToggle();
 
   return (
     <View
@@ -13,13 +24,16 @@ const NotFound = () => {
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: 17,
-        paddingVertical: 50,
+        paddingVertical: ph,
+        opacity: 0.5,
       }}>
-      <AntDesign
-        size={100}
-        name="unknowfile1"
-        color={Colors[colorScheme ?? "light"].text}
-      />
+      {enableIcon && (
+        <AntDesign
+          size={iconSize}
+          name="unknowfile1"
+          color={Colors[colorScheme ?? "light"].text}
+        />
+      )}
       <Divider width={10} height={10} />
       <ThemedText type="title">Ooops!</ThemedText>
       <ThemedText font="regular">Sorry data is not found</ThemedText>

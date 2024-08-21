@@ -10,7 +10,7 @@ import {
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { heightPercentageToDP, widthPercentageToDP } from "@/utils/sizing";
 import { ThemedView } from "./ThemedView";
-import { Colors } from "@/constants/Colors";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 type BaseLayoutProps = {
   children: React.ReactNode;
@@ -19,7 +19,7 @@ type BaseLayoutProps = {
   darkBackgroundColor?: string;
   statusBarStyle?: "light-content" | "dark-content";
   showWatermark?: boolean;
-  enableScroll?: boolean; // New prop to enable scrolling
+  enableScroll?: boolean;
 };
 
 export function BaseLayout({
@@ -29,20 +29,18 @@ export function BaseLayout({
   darkBackgroundColor,
   statusBarStyle,
   showWatermark = false,
-  enableScroll = false, // Default to false
+  enableScroll = false,
 }: BaseLayoutProps) {
   const backgroundColor = useThemeColor(
     { light: lightBackgroundColor, dark: darkBackgroundColor },
     "background"
   );
+  const { colorScheme } = useThemeToggle();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor }}>
       <StatusBar
-        barStyle={
-          statusBarStyle ||
-          (backgroundColor === Colors.white ? "dark-content" : "light-content")
-        }
+        barStyle={colorScheme === "light" ? "dark-content" : "light-content"}
       />
       <ThemedView style={{ flex: 1 }}>
         {enableScroll ? (

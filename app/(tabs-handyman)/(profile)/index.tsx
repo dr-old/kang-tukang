@@ -20,7 +20,7 @@ import { useThemeToggle } from "@/hooks/useThemeToggle";
 export default function ProfileScreen() {
   const { profile } = useUserStore() as unknown as UserStoreType;
   const realm = useRealm();
-  const { colorScheme } = useThemeToggle();
+  const { colorScheme, toggleTheme } = useThemeToggle();
 
   useEffect(() => {
     if (realm) {
@@ -41,6 +41,7 @@ export default function ProfileScreen() {
     {
       title: "Change Password",
       icon: "lock",
+      library: SimpleLineIcons,
       onPress: () => {
         router.push({
           pathname: "/(profile)/update-profile",
@@ -51,6 +52,7 @@ export default function ProfileScreen() {
     {
       title: "Change Phone Number",
       icon: "screen-smartphone",
+      library: SimpleLineIcons,
       onPress: () => {
         router.push({
           pathname: "/(profile)/update-profile",
@@ -58,6 +60,14 @@ export default function ProfileScreen() {
         });
       },
     },
+    // {
+    //   title: "Theme Mode",
+    //   icon: "invert-mode",
+    //   library: Ionicons,
+    //   onPress: () => {
+    //     toggleTheme();
+    //   },
+    // },
   ];
 
   const helpCenter = [
@@ -150,7 +160,7 @@ export default function ProfileScreen() {
                 onPress={item.onPress}
                 style={styles.menuItem}>
                 <View style={styles.menuIcon}>
-                  <SimpleLineIcons name={item.icon} size={20} />
+                  <item.library name={item.icon} size={20} />
                 </View>
                 <ThemedText font="regular" style={{ flex: 1, marginLeft: 10 }}>
                   {item.title}

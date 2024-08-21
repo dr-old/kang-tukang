@@ -11,6 +11,7 @@ export class Transaction extends Realm.Object<Transaction> {
   updatedAt!: Date;
   status!: number;
   category!: number;
+  handymanId!: string;
 
   static schema: Realm.ObjectSchema = {
     name: "Transaction",
@@ -26,6 +27,7 @@ export class Transaction extends Realm.Object<Transaction> {
       createdAt: { type: "date", default: () => new Date() },
       updatedAt: { type: "date", default: () => new Date() },
       status: { type: "int", default: 1 },
+      handymanId: { type: "string", default: "" },
     },
   };
 }

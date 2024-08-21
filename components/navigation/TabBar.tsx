@@ -1,18 +1,18 @@
 import React from "react";
 import { View, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { ThemedText } from "../ThemedText";
 import { imageTabBar } from "@/constants/Constant";
 import { responsiveHeight, responsiveWidth } from "@/utils/sizing";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 const TabBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
 }) => {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
 
   return (
     <View style={[styles.tabBar]}>
@@ -46,7 +46,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
               type="semiSmall"
               font="medium"
               style={{ color: Colors.black }}>
-              {options.title || route.name}
+              {options.title}
             </ThemedText>
             <View
               style={[

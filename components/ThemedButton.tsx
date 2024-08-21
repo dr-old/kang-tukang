@@ -1,13 +1,9 @@
 import React, { ReactNode } from "react";
-import {
-  TouchableOpacity,
-  StyleSheet,
-  ViewStyle,
-  useColorScheme,
-} from "react-native";
+import { TouchableOpacity, StyleSheet, ViewStyle } from "react-native";
 import { Colors } from "@/constants/Colors"; // Assuming you have a Colors file for theme colors
 import { ThemedText } from "./ThemedText";
 import { responsiveHeight } from "@/utils/sizing";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 interface ThemeButton {
   title: string;
@@ -34,7 +30,7 @@ export function ThemedButton({
   height,
   ph,
 }: ThemeButton) {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
   return (
     <TouchableOpacity
       style={[
@@ -46,7 +42,7 @@ export function ThemedButton({
         },
         type === "default"
           ? {
-              backgroundColor: Colors[colorScheme ?? "light"].background,
+              backgroundColor: Colors.light.background,
             }
           : styles[type],
         style,

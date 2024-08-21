@@ -3,15 +3,35 @@ import { useUserStore } from "@/stores/user/userStore";
 import { heightPercentageToDP, widthPercentageToDP } from "@/utils/sizing";
 import { UserStoreType } from "@/utils/types";
 import { Redirect, router } from "expo-router";
-import { Image, ImageBackground, StyleSheet, View } from "react-native";
+import {
+  Image,
+  ImageBackground,
+  Platform,
+  StyleSheet,
+  View,
+} from "react-native";
 // import * as Crypto from "expo-crypto";
 
 export default function AuthScreen() {
   const { profile, isLoggedIn } = useUserStore() as unknown as UserStoreType;
+  console.log(isLoggedIn, profile);
 
-  if (isLoggedIn && profile?._id) {
-    return <Redirect href="/(tabs)" />;
+  if (isLoggedIn && Platform.OS === "ios") {
+    if (profile?.role === "user") {
+      return <Redirect href="/(tabs)" />;
+    } else if (profile?.role === "handyman") {
+      return <Redirect href="/(tabs-handyman)" />;
+    }
   }
+  // useEffect(() => {
+  //   if (isLoggedIn) {
+  //     if (profile?.role === "user") {
+  //       router.replace("/(tabs)");
+  //     } else if (profile?.role === "handyman") {
+  //       router.replace("/(tabs-handyman)");
+  //     }
+  //   }
+  // }, [isLoggedIn, profile]);
 
   return (
     <ImageBackground

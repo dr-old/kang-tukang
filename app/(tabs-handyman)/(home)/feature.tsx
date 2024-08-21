@@ -99,8 +99,6 @@ export default function FeatureScreen() {
             getTotalPrice(category),
             "Rp"
           )}.`,
-          status: 1,
-          type: 1,
         });
         deleteAllByUser(category);
         router.replace("/(order)");

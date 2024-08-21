@@ -1,13 +1,9 @@
-import {
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { ThemedText } from "@/components/ThemedText";
 import { AntDesign } from "@expo/vector-icons";
 import { useCartActions } from "@/services/useCartActions";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 interface ServiceCardProps {
   id: string;
@@ -34,7 +30,7 @@ const ServiceCardMultiple = ({
     getTotalQuantity,
     getTotalPrice,
   } = useCartActions();
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
 
   return (
     <View style={{ ...styles.orderItemMultiple, borderBottomColor: border }}>

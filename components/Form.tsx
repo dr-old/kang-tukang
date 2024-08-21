@@ -64,7 +64,6 @@ const styles = StyleSheet.create({
   labelContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    // marginBottom: 5,
   },
   label: { flex: 1, textTransform: "capitalize" },
   labelLeft: {

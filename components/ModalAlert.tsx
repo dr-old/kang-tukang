@@ -1,5 +1,5 @@
 import React, { ReactNode } from "react";
-import { Dimensions, StyleSheet, View, useColorScheme } from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
 import { useModal } from "../hooks/useModal";
 import { hexToRgba } from "../utils/helpers";
 import { ThemedText } from "./ThemedText";
@@ -7,6 +7,7 @@ import { Colors } from "@/constants/Colors";
 import ModalContainer from "./ModalContainer";
 import Divider from "./Divider";
 import { ThemedButton } from "./ThemedButton";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 interface ModalAlertProps {
   refView?: React.MutableRefObject<any>;
@@ -34,7 +35,7 @@ const ModalAlert: React.FC<ModalAlertProps> = ({
   labelCancel,
 }) => {
   const { hideModal } = useModal();
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
   const theme = Colors[colorScheme ?? "light"];
   const styles = styling(theme);
 

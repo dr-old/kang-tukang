@@ -1,14 +1,8 @@
 import React from "react";
-import {
-  Dimensions,
-  Image,
-  ImageStyle,
-  StyleSheet,
-  View,
-  useColorScheme,
-} from "react-native";
+import { Dimensions, Image, ImageStyle, StyleSheet, View } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { calculateAspectRatio } from "@/utils/sizing";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 interface ModalAlertProps {
   image?: any;
@@ -16,7 +10,7 @@ interface ModalAlertProps {
 }
 
 const ModalImage: React.FC<ModalAlertProps> = ({ image, style }) => {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
   const theme = Colors[colorScheme ?? "light"];
   const styles = styling(theme);
 

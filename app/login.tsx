@@ -1,5 +1,6 @@
 import { BaseLayout } from "@/components/BaseLayout";
 import { Checkbox } from "@/components/Checkbox";
+import Header from "@/components/Header";
 import { Input } from "@/components/Input";
 import { ThemedButton } from "@/components/ThemedButton";
 import { ThemedText } from "@/components/ThemedText";
@@ -17,7 +18,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery, useRealm } from "@realm/react";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StatusBar, StyleSheet, View } from "react-native";
 
 const schema = {
   email: [{ rule: vr.email }],
@@ -66,7 +67,7 @@ export default function LoginScreen() {
             updatedAt: user.updatedAt,
           });
           setLogIn(true);
-          toast("Log In is successfull!");
+          toast("Log in is successfull!");
           router.replace("/");
         }
       }
@@ -97,100 +98,109 @@ export default function LoginScreen() {
     }
   }, [realm]);
 
+  console.log(StatusBar.currentHeight);
+
   return (
-    <BaseLayout style={{ paddingHorizontal: 40 }} statusBarStyle="dark-content">
-      <ThemedText font="medium" type="semiSmall">
-        Welcome back
-      </ThemedText>
-      <ThemedText type="title" font="semiBold">
-        Log In!
-      </ThemedText>
-      <ThemedView
-        lightColor={Colors.warning}
-        darkColor={Colors.warning}
-        style={styles.formContainer}>
-        <Input
-          name="email"
-          value={values.email}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          error={errors.email}
-          placeholder="Your email"
-        />
-        <Input
-          name="password"
-          value={values.password}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          error={errors?.password?.length === 1 && errors.password[0]}
-          placeholder="Your password"
-          secureTextEntry={!visiblePass}
-          suffix={
-            <MaterialCommunityIcons
-              name={visiblePass ? "eye-off-outline" : "eye-outline"}
-              color={color}
-              size={24}
-              style={{ marginHorizontal: 7 }}
-              onPress={() => setVisiblePass(!visiblePass)}
-            />
-          }
-        />
-        <View style={styles.remember}>
-          <Checkbox
-            name="acceptTerms"
-            checked={values.acceptTerms}
-            value="accepted"
+    <BaseLayout enableScroll={true} statusBarStyle="dark-content">
+      <Header />
+      <View style={{ paddingHorizontal: 40 }}>
+        <ThemedText font="medium" type="semiSmall">
+          Welcome back
+        </ThemedText>
+        <ThemedText type="title" font="semiBold">
+          Log In!
+        </ThemedText>
+        <ThemedView
+          lightColor={Colors.warning}
+          darkColor={Colors.warning}
+          style={styles.formContainer}>
+          <Input
+            name="email"
+            value={values.email}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={errors.acceptTerms}
-            label="Remember this device"
+            error={errors.email}
+            placeholder="Your email"
           />
-          <ThemedText font="medium" type="small">
-            Forgot password?
-          </ThemedText>
-        </View>
-        <View style={{ marginHorizontal: 15 }}>
-          <ThemedButton type="primary" title="Log In" onPress={handleSubmit} />
-          <ThemedText
-            font="semiBold"
-            style={{ marginVertical: 10 }}
-            textAlign="center">
-            OR
-          </ThemedText>
-          <ThemedButton
-            mode="sosmed"
-            title="Continue with Google"
-            onPress={handleSubmit}
-            preffix={
-              <Image
-                source={require("@/assets/images/google.png")}
-                style={{ width: 20, height: 20 }}
+          <Input
+            name="password"
+            value={values.password}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors?.password?.length === 1 && errors.password[0]}
+            placeholder="Your password"
+            secureTextEntry={!visiblePass}
+            suffix={
+              <MaterialCommunityIcons
+                name={visiblePass ? "eye-off-outline" : "eye-outline"}
+                color={color}
+                size={24}
+                style={{ marginHorizontal: 7 }}
+                onPress={() => setVisiblePass(!visiblePass)}
               />
             }
-            style={{ marginBottom: 10 }}
           />
-          <ThemedButton
-            mode="sosmed"
-            title="Continue with Facebook"
-            onPress={handleSubmit}
-            preffix={
-              <Image
-                source={require("@/assets/images/fb.png")}
-                style={{ width: 20, height: 20 }}
-              />
-            }
-            style={{ marginBottom: 10 }}
-          />
-        </View>
-      </ThemedView>
-      <ThemedText
-        type="small"
-        font="medium"
-        textAlign="center"
-        style={{ paddingHorizontal: 10 }}>
-        WasteAway uses your location access to support system performance at the
-        time of pickup.
-      </ThemedText>
+          <View style={styles.remember}>
+            <Checkbox
+              name="acceptTerms"
+              checked={values.acceptTerms}
+              value="accepted"
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={errors.acceptTerms}
+              label="Remember this device"
+            />
+            <ThemedText font="medium" type="small">
+              Forgot password?
+            </ThemedText>
+          </View>
+          <View style={{ marginHorizontal: 15 }}>
+            <ThemedButton
+              type="primary"
+              title="Log In"
+              onPress={handleSubmit}
+            />
+            <ThemedText
+              font="semiBold"
+              style={{ marginVertical: 10 }}
+              textAlign="center">
+              OR
+            </ThemedText>
+            <ThemedButton
+              mode="sosmed"
+              title="Continue with Google"
+              onPress={handleSubmit}
+              preffix={
+                <Image
+                  source={require("@/assets/images/google.png")}
+                  style={{ width: 20, height: 20 }}
+                />
+              }
+              style={{ marginBottom: 10 }}
+            />
+            <ThemedButton
+              mode="sosmed"
+              title="Continue with Facebook"
+              onPress={handleSubmit}
+              preffix={
+                <Image
+                  source={require("@/assets/images/fb.png")}
+                  style={{ width: 20, height: 20 }}
+                />
+              }
+              style={{ marginBottom: 10 }}
+            />
+          </View>
+        </ThemedView>
+        <ThemedText
+          type="small"
+          font="medium"
+          textAlign="center"
+          style={{ paddingHorizontal: 10 }}>
+          WasteAway uses your location access to support system performance at
+          the time of pickup.
+        </ThemedText>
+      </View>
     </BaseLayout>
   );
 }

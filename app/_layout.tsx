@@ -1,14 +1,9 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { ThemeProvider } from "@react-navigation/native";
 import { Slot } from "expo-router";
 import "react-native-reanimated";
 import "expo-dev-client";
 import "react-native-get-random-values";
 import * as Splash from "expo-splash-screen";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { useEffect } from "react";
 import { AppProvider, RealmProvider, UserProvider } from "@realm/react";
 import {
@@ -47,12 +42,13 @@ import { Cart } from "@/schemes/CartScheme";
 import { Account } from "@/schemes/AccountScheme";
 import { TransactionLog } from "@/schemes/TransactionLogScheme";
 import { AccountLog } from "@/schemes/AccountLogScheme";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 LogBox.ignoreLogs(["Warning: ..."]);
 LogBox.ignoreAllLogs();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const { theme } = useThemeToggle();
   let [loaded] = useFonts({
     Poppins_100Thin,
     Poppins_100Thin_Italic,
@@ -85,7 +81,7 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={theme}>
       <AppProvider id={env.APP_ID_REALM}>
         <UserProvider fallback={<SplashScreen signin={true} />}>
           <RealmProvider

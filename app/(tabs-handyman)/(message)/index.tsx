@@ -1,38 +1,38 @@
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
 import { Realm, useQuery, useRealm } from "@realm/react";
+import { useEffect } from "react";
 import moment from "moment";
+import { AntDesign } from "@expo/vector-icons";
+import Divider from "@/components/Divider";
 import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
-import { Transaction } from "@/schemes/TransactionScheme";
-import { useEffect } from "react";
-import { services, trxStatus } from "@/constants/Constant";
+import { Message } from "@/schemes/MessageScheme";
 import NotFound from "@/components/NotFound";
-import { router } from "expo-router";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
 
-export default function OrderScreen() {
-  const { profile } = useUserStore() as unknown as UserStoreType;
-  const userId = new Realm.BSON.ObjectId(profile?._id);
+export default function MessageScreen() {
   const realm = useRealm();
   const { colorScheme } = useThemeToggle();
-  const trx = useQuery(
+  const { profile } = useUserStore() as unknown as UserStoreType;
+  const userId = new Realm.BSON.ObjectId(profile?._id);
+  const message = useQuery(
     {
-      type: Transaction,
+      type: Message,
       query: (collection) =>
-        collection.filtered("userId == $0", userId).sorted("createdAt", true),
+        collection.filtered("sender == $0", userId).sorted("createdAt", true),
     },
     [userId]
   );
 
   useEffect(() => {
     realm.subscriptions.update((mutableSubs) => {
-      mutableSubs.add(trx);
+      mutableSubs.add(message);
     });
-  }, [realm, trx]);
+  }, [realm, message]);
 
   return (
     <BaseLayout
@@ -42,7 +42,7 @@ export default function OrderScreen() {
       statusBarStyle="dark-content">
       <View style={styles.header}>
         <ThemedText font="semiBold" type="normal">
-          Orders
+          Messages
         </ThemedText>
       </View>
       <View
@@ -50,39 +50,37 @@ export default function OrderScreen() {
           ...styles.order,
           backgroundColor: Colors[colorScheme ?? "light"].background,
         }}>
-        {trx?.length > 0 ? (
-          trx.map((item: any, index: number) => {
-            const category = services.find((i) => i.id === item.category);
-            const status = trxStatus.find((i) => i.id === item.status);
+        {message?.length > 0 ? (
+          message.map((item: any, index: number) => {
+            // const category = services.find((i) => i.id === item.category);
             return (
-              <TouchableOpacity
+              <View
                 key={index.toString()}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(order)/detail",
-                    params: { trxId: item.trxId },
-                  })
-                }
                 style={{
                   ...styles.orderItem,
                   borderBottomColor:
-                    trx.length - 1 === index
+                    message.length - 1 === index
                       ? "transparent"
                       : Colors.borderYellow,
                 }}>
-                <Image source={category?.image} style={styles.orderImage} />
+                <AntDesign
+                  name="exclamationcircle"
+                  color={Colors.warning}
+                  size={20}
+                />
+                <Divider width={18} height={0} />
                 <View style={{ flex: 1 }}>
                   <ThemedText font="medium" type="default">
-                    {category?.title}
+                    {item.title}
                   </ThemedText>
                   <ThemedText font="regular" type="semiSmall">
-                    {status?.title}
+                    {item.message}
                   </ThemedText>
                   <ThemedText font="regular" type="semiSmall">
                     {moment(item.createdAt).format("DD MMMM YYYY HH:mm")}
                   </ThemedText>
                 </View>
-              </TouchableOpacity>
+              </View>
             );
           })
         ) : (
