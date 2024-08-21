@@ -2,7 +2,7 @@ import { ThemedButton } from "@/components/ThemedButton";
 import { useUserStore } from "@/stores/user/userStore";
 import { heightPercentageToDP, widthPercentageToDP } from "@/utils/sizing";
 import { UserStoreType } from "@/utils/types";
-import { Redirect, router } from "expo-router";
+import { Redirect, router, useRootNavigationState } from "expo-router";
 import {
   Image,
   ImageBackground,
@@ -14,9 +14,12 @@ import {
 
 export default function AuthScreen() {
   const { profile, isLoggedIn } = useUserStore() as unknown as UserStoreType;
-  // console.log(isLoggedIn, profile);
+  const rootNavigationState = useRootNavigationState();
+
+  if (!rootNavigationState?.key) return null;
 
   if (isLoggedIn && Platform.OS === "ios") {
+    // if (isLoggedIn) {
     if (profile?.role === "user") {
       return <Redirect href="/(tabs)" />;
     } else if (profile?.role === "handyman") {

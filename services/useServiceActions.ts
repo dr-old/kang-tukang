@@ -55,6 +55,11 @@ export const useServiceActions = () => {
     return realm.objects<Service>("Service");
   };
 
+  // Read/Get all services
+  const getServiceByCategory = (category: number) => {
+    return realm.objects(Service).filtered("category == $0", category);
+  };
+
   // Update a service
   const updateService = (serviceId: string, updatedData: Partial<Service>) => {
     try {
@@ -98,6 +103,7 @@ export const useServiceActions = () => {
     createService,
     createMultipleServices,
     getServiceById,
+    getServiceByCategory,
     getAllServices,
     updateService,
     deleteService,

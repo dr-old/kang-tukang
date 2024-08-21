@@ -1,5 +1,4 @@
 import { BaseLayout } from "@/components/BaseLayout";
-import { Checkbox } from "@/components/Checkbox";
 import Header from "@/components/Header";
 import { Input } from "@/components/Input";
 import { ThemedButton } from "@/components/ThemedButton";
@@ -7,81 +6,84 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import useFormValidation from "@/hooks/useFormValidation";
-import { useSession } from "@/hooks/useSession";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { User } from "@/schemes/UserScheme";
-import { useUserStore } from "@/stores/user/userStore";
 import { toast } from "@/utils/helpers";
-import { UserStoreType } from "@/utils/types";
 import { validationRules as vr } from "@/utils/validateRules";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery, useRealm } from "@realm/react";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
+// import * as Crypto from "expo-crypto";
 
-const schema = {
-  email: [{ rule: vr.email }],
-  password: [{ rule: vr.passwordComplexity }],
-};
-
-export default function LoginScreen() {
-  const { setProfile, setLogIn } = useUserStore() as unknown as UserStoreType;
-  const { signIn } = useSession();
+export default function RegisterScreen() {
   const color = useThemeColor({}, "text");
   const realm = useRealm();
   const users = useQuery(User);
+  const [password, setPassword] = useState("");
   const [visiblePass, setVisiblePass] = useState(false);
+  const [visibleRetypePass, setVisibleRetypePass] = useState(false);
+
+  const schema = {
+    email: [{ rule: vr.email }],
+    password: [{ rule: vr.passwordComplexity }],
+    retypePassword: [
+      {
+        rule: vr.passwordMatch,
+        args: [password],
+      },
+    ],
+  };
+
   const { values, errors, handleChange, handleBlur, handleSubmit } =
     useFormValidation(
       {
-        password: "",
         email: "",
-        remember: "",
+        password: "",
+        retypePassword: "",
       },
       schema,
-      () => onPressSignIn()
+      () => onPressSignUp()
     );
 
-  const handleSignIn = useCallback(
-    (email: string, password: string) => {
+  const signUp = useCallback(
+    async (email: string, password: string) => {
       const item = users.filtered("email == $0", email);
-
       if (item?.length === 0) {
-        toast("This email was not found!");
-      } else {
-        if (item[0].password !== password) {
-          toast("This password is wrong!");
-        } else {
-          const user = item[0];
-          setProfile({
-            _id: user._id,
-            birthday: user.birthday,
-            createdAt: user.createdAt,
-            email: user.email,
-            name: user.name,
-            phone: user.phone,
-            photo: user.photo,
-            address: user.address,
-            role: user.role,
-            updatedAt: user.updatedAt,
+        realm.write(() => {
+          return realm.create(User, {
+            email,
+            password,
+            name: "",
+            phone: "",
+            birthday: "",
+            photo: "",
+            address: "",
           });
-          setLogIn(true);
-          toast("Log in is successfull!");
-          router.replace("/");
-        }
+        });
+        router.push({ pathname: "/response", params: { navTo: "/" } });
+        toast("User sign up successfully!");
+      } else {
+        toast("This email already exists!");
       }
     },
     [realm]
   );
 
-  const onPressSignIn = useCallback(async () => {
+  const onPressSignUp = useCallback(async () => {
     try {
-      await handleSignIn(values.email.toLowerCase(), values.password);
+      await signUp(values.email.toLowerCase(), values.password);
     } catch (error: any) {
-      toast(`Failed to log in: ${error?.message}`);
+      toast(error?.message || "Something wrong, sign up is failed!");
+      console.log(`Failed to sign up: ${error?.message}`);
     }
-  }, [signIn, values.email, values.password]);
+  }, [signUp, values.email, values.password]);
+
+  const handlePassword = (name: string, value: string) => {
+    handleChange(name, value);
+    setPassword(value);
+  };
 
   useEffect(() => {
     if (realm) {
@@ -103,10 +105,10 @@ export default function LoginScreen() {
       <Header />
       <View style={{ paddingHorizontal: 40 }}>
         <ThemedText font="medium" type="semiSmall">
-          Welcome back
+          Create your account and enjoy the features Kangtukang
         </ThemedText>
         <ThemedText type="title" font="semiBold">
-          Log In!
+          Sign Up!
         </ThemedText>
         <ThemedView
           lightColor={Colors.warning}
@@ -123,7 +125,7 @@ export default function LoginScreen() {
           <Input
             name="password"
             value={values.password}
-            onChange={handleChange}
+            onChange={handlePassword}
             onBlur={handleBlur}
             error={errors?.password?.length === 1 && errors.password[0]}
             placeholder="Your password"
@@ -138,24 +140,29 @@ export default function LoginScreen() {
               />
             }
           />
-          <View style={styles.remember}>
-            <Checkbox
-              name="acceptTerms"
-              checked={values.acceptTerms}
-              value="accepted"
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.acceptTerms}
-              label="Remember this device"
-            />
-            <ThemedText font="medium" type="small">
-              Forgot password?
-            </ThemedText>
-          </View>
-          <View style={{ marginHorizontal: 15 }}>
+          <Input
+            name="retypePassword"
+            label="Re-type Password"
+            value={values.retypePassword}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors?.retypePassword}
+            placeholder="Your re-type password"
+            secureTextEntry={!visibleRetypePass}
+            suffix={
+              <MaterialCommunityIcons
+                name={visibleRetypePass ? "eye-off-outline" : "eye-outline"}
+                color={color}
+                size={24}
+                style={{ marginHorizontal: 7 }}
+                onPress={() => setVisibleRetypePass(!visibleRetypePass)}
+              />
+            }
+          />
+          <View style={{ marginHorizontal: 15, marginTop: 28 }}>
             <ThemedButton
               type="primary"
-              title="Log In"
+              title="Sign Up"
               onPress={handleSubmit}
             />
             <ThemedText
@@ -166,7 +173,7 @@ export default function LoginScreen() {
             </ThemedText>
             <ThemedButton
               mode="sosmed"
-              title="Continue with Google"
+              title="Register with Google"
               onPress={handleSubmit}
               preffix={
                 <Image
@@ -178,7 +185,7 @@ export default function LoginScreen() {
             />
             <ThemedButton
               mode="sosmed"
-              title="Continue with Facebook"
+              title="Register with Facebook"
               onPress={handleSubmit}
               preffix={
                 <Image

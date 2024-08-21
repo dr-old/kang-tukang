@@ -22,14 +22,8 @@ const ServiceCard = ({
   category,
   border,
 }: ServiceCardProps) => {
-  const {
-    addToCart,
-    incrementQuantity,
-    decrementQuantity,
-    getQuantity,
-    getTotalQuantity,
-    getTotalPrice,
-  } = useCartActions();
+  const { addToCart, incrementQuantity, decrementQuantity, getQuantity } =
+    useCartActions();
   const { colorScheme } = useThemeToggle();
 
   return (
@@ -51,12 +45,12 @@ const ServiceCard = ({
         </ThemedText>
       </View>
 
-      {getQuantity(id) > 0 ? (
+      {getQuantity(id.toString()) > 0 ? (
         <View style={styles.groupButton}>
           <View style={styles.button}>
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => decrementQuantity(id)}
+              onPress={() => decrementQuantity(id.toString())}
               style={{
                 ...styles.iconButton,
                 backgroundColor: Colors.info,
