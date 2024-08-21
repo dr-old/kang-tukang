@@ -38,12 +38,16 @@ This command will move the starter code to the **app-example** directory and cre
 ## Authentication
 
 Access login user:
+```bash
 danni@gmail.com
 Abcd#123
+```
 
 Access login handyman:
+```bash
 ramdan@gmail.com
 Abcd#123
+```
 
 ## Learn more
 
