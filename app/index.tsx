@@ -14,7 +14,7 @@ import {
 
 export default function AuthScreen() {
   const { profile, isLoggedIn } = useUserStore() as unknown as UserStoreType;
-  console.log(isLoggedIn, profile);
+  // console.log(isLoggedIn, profile);
 
   if (isLoggedIn && Platform.OS === "ios") {
     if (profile?.role === "user") {

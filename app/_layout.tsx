@@ -32,16 +32,7 @@ import { LogBox } from "react-native";
 import SplashScreen from "./splash";
 import { OpenRealmBehaviorType } from "realm";
 import { schemas } from "@/schemes";
-import { User } from "@/schemes/UserScheme";
-import { Service } from "@/schemes/ServiceScheme";
-import { TransactionDetail } from "@/schemes/TransactionDetailScheme";
-import { Message } from "@/schemes/MessageScheme";
 import { ModalProvider } from "@/hooks/useModal";
-import { Transaction } from "@/schemes/TransactionScheme";
-import { Cart } from "@/schemes/CartScheme";
-import { Account } from "@/schemes/AccountScheme";
-import { TransactionLog } from "@/schemes/TransactionLogScheme";
-import { AccountLog } from "@/schemes/AccountLogScheme";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 LogBox.ignoreLogs(["Warning: ..."]);
@@ -88,19 +79,19 @@ export default function RootLayout() {
             schema={schemas}
             sync={{
               flexible: true,
-              initialSubscriptions: {
-                update: (mutableSubs, realm) => {
-                  mutableSubs.add(realm.objects(Account));
-                  mutableSubs.add(realm.objects(AccountLog));
-                  mutableSubs.add(realm.objects(Cart));
-                  mutableSubs.add(realm.objects(User));
-                  mutableSubs.add(realm.objects(Service));
-                  mutableSubs.add(realm.objects(Transaction));
-                  mutableSubs.add(realm.objects(TransactionDetail));
-                  mutableSubs.add(realm.objects(TransactionLog));
-                  mutableSubs.add(realm.objects(Message));
-                },
-              },
+              // initialSubscriptions: {
+              //   update: (mutableSubs, realm) => {
+              //     mutableSubs.add(realm.objects(Account));
+              //     mutableSubs.add(realm.objects(AccountLog));
+              //     mutableSubs.add(realm.objects(Cart));
+              //     mutableSubs.add(realm.objects(User));
+              //     mutableSubs.add(realm.objects(Service));
+              //     mutableSubs.add(realm.objects(Transaction));
+              //     mutableSubs.add(realm.objects(TransactionDetail));
+              //     mutableSubs.add(realm.objects(TransactionLog));
+              //     mutableSubs.add(realm.objects(Message));
+              //   },
+              // },
               onError: (_session, error) => {
                 console.error(error);
               },

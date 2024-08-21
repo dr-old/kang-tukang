@@ -62,7 +62,7 @@ export default function RegisterScreen() {
             address: "",
           });
         });
-        router.push({ pathname: "/response", params: { navTo: "/(auth)" } });
+        router.push({ pathname: "/response", params: { navTo: "/" } });
         toast("User sign up successfully!");
       } else {
         toast("This email already exists!");

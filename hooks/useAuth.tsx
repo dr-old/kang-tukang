@@ -32,7 +32,7 @@ export const useAuthRealm = (apiKey: string, signin: boolean) => {
 
   useEffect(() => {
     if (signin) signInWithKey();
-  }, [signInWithKey]);
+  }, [signInWithKey, signin]);
 
   return {
     user,
