@@ -67,6 +67,7 @@ export default function HomeScreen() {
   const transactionMyProgress = useMemo(() => {
     return getTransactionByStatusAndHandymanId(4, userId.toString(), true);
   }, [getTransactionByStatusAndHandymanId, userId]);
+  console.log("transactionMyProgress", transactionMyProgress);
 
   const transactionMyCompleted = useMemo(() => {
     return getTransactionByStatusAndHandymanId(5, userId.toString(), true);

@@ -37,6 +37,7 @@ import { useUserActions } from "@/services/useUserActions";
 import OrderCart from "@/components/OrderCart";
 import HeaderBack from "@/components/HeaderBack";
 import { useAccountLogActions } from "@/services/useAccountLogActions";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 export default function OrderDetailScreen() {
   const { profile } = useUserStore() as unknown as UserStoreType;
@@ -223,7 +224,7 @@ export default function OrderDetailScreen() {
           <Divider height={5} />
           <View style={styles.requester}>
             <Image
-              source={{ uri: profile?.photo }}
+              source={{ uri: trxRequester?.photo }}
               style={styles.requesterImage}
             />
             <View style={{ flex: 1 }}>

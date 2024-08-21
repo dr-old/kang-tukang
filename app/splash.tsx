@@ -24,7 +24,7 @@ export default function SplashScreen({ signin }: SplashScreenProps) {
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.warning} />
         <ThemedText type="normal" font="medium" style={styles.loadingText}>
-          Signing in...
+          Loading...
         </ThemedText>
       </View>
     );

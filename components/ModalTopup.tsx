@@ -12,6 +12,9 @@ import { useModal } from "@/hooks/useModal";
 import { useAccountLogActions } from "@/services/useAccountLogActions";
 import { useMessageActions } from "@/services/useMessageActions";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { useUserStore } from "@/stores/user/userStore";
+import { UserStoreType } from "@/utils/types";
+import { BSON } from "realm";
 
 interface ModalAlertProps {
   onConfirm?: () => void;
@@ -28,6 +31,8 @@ const ModalTopup: React.FC<ModalAlertProps> = ({
   labelConfirm,
   labelCancel,
 }) => {
+  const { profile } = useUserStore() as unknown as UserStoreType;
+  const userId = new BSON.ObjectId(profile?._id);
   const { hideModal } = useModal();
   const { topupBalance } = useAccountActions();
   const { createLog } = useAccountLogActions();
@@ -49,7 +54,7 @@ const ModalTopup: React.FC<ModalAlertProps> = ({
     } else {
       try {
         const data = {
-          accountName: "Top-up Balance",
+          accountName: "Balance",
           accountType: 1,
           status: 1,
           balance: Number(numericValue),
@@ -63,6 +68,8 @@ const ModalTopup: React.FC<ModalAlertProps> = ({
               Number(numericValue),
               "Rp"
             )} for main balance.`,
+            sender: userId.toString(),
+            receiver: userId.toString(),
           });
           toast("Top-up successfully!");
           hideModal();

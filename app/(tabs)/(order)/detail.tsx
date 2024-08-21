@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
@@ -12,6 +12,7 @@ import { useLocalSearchParams } from "expo-router";
 import NotFound from "@/components/NotFound";
 import Divider from "@/components/Divider";
 import {
+  directWhatsapp,
   formatCurrency,
   hexToRgba,
   toast,
@@ -20,7 +21,7 @@ import {
 import { useTransactionDetail } from "@/services/useTransactionDetailActions";
 import { useServiceActions } from "@/services/useServiceActions";
 import { useAccountActions } from "@/services/useAccountActions";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { ThemedButton } from "@/components/ThemedButton";
 import { useModal } from "@/hooks/useModal";
 import ModalAlert from "@/components/ModalAlert";
@@ -32,10 +33,11 @@ import OrderData from "@/components/OrderData";
 import { CollapsibleService } from "@/components/CollapsibleService";
 import Dashed from "@/components/Dashed";
 import { useTransactionLogActions } from "@/services/useTransactionLogActions";
-import moment from "moment";
 import OrderPayment from "@/components/OrderPayment";
 import OrderCart from "@/components/OrderCart";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { useUserActions } from "@/services/useUserActions";
+import OrderHistory from "@/components/OrderHistory";
 
 export default function OrderDetailScreen() {
   const { profile } = useUserStore() as unknown as UserStoreType;
@@ -49,6 +51,7 @@ export default function OrderDetailScreen() {
   const { createMessage } = useMessageActions();
   const { createTransactionLog, getTransactionLogByTrxid } =
     useTransactionLogActions();
+  const { getUserById } = useUserActions();
   const { trxId } = useLocalSearchParams();
   const realm = useRealm();
   const { colorScheme } = useThemeToggle();
@@ -76,6 +79,14 @@ export default function OrderDetailScreen() {
 
   const trxDetail = useMemo(() => {
     return getTransactionDetailsByTrxId(trxId.toString());
+  }, [trxId]);
+
+  const trxRequester = useMemo(() => {
+    return trxData?.handymanId && getUserById(trxData?.handymanId?.toString());
+  }, [trxData]);
+
+  const trxLog = useMemo(() => {
+    return getTransactionLogByTrxid(trxId.toString());
   }, [trxId]);
 
   useEffect(() => {
@@ -167,61 +178,56 @@ export default function OrderDetailScreen() {
               type: statusBadge?.type,
             }}
           />
+          {trxRequester && (
+            <>
+              <ThemedText font="medium" type="default">
+                Responder
+              </ThemedText>
+              <Divider height={5} />
+              <View style={styles.requester}>
+                <Image
+                  source={{ uri: trxRequester?.photo }}
+                  style={styles.requesterImage}
+                />
+                <View style={{ flex: 1 }}>
+                  <ThemedText font="semiBold" type="default">
+                    {trxRequester?.name}
+                  </ThemedText>
+                  <ThemedText font="regular" type="semiSmall">
+                    Responder
+                  </ThemedText>
+                  <View style={styles.rowBetween}></View>
+                </View>
+                {trxData.status === 4 && (
+                  <Ionicons
+                    name="logo-whatsapp"
+                    size={24}
+                    onPress={() => directWhatsapp(trxRequester?.phone)}
+                  />
+                )}
+              </View>
+              <Divider height={20} />
+            </>
+          )}
           <ThemedText font="medium" type="default">
             History
           </ThemedText>
-          {getTransactionLogByTrxid(trxId.toString()).map(
-            (item: any, index: number) => {
+          {trxLog?.length > 0 &&
+            trxLog.map((item: any, index: number) => {
               const finded = transactionStatus(
                 item.trxId,
                 Number(item.totalPrice),
                 item.status
               );
               return (
-                <View
+                <OrderHistory
                   key={index.toString()}
-                  style={{
-                    flexDirection: "row",
-                    opacity: index === 0 ? 1 : 0.5,
-                    height: 50,
-                  }}>
-                  <View
-                    style={{
-                      alignItems: "center",
-                    }}>
-                    <MaterialIcons
-                      name={
-                        index === 0 ? "radio-button-on" : "radio-button-off"
-                      }
-                      size={20}
-                      color={index === 0 ? Colors.info : theme.text}
-                    />
-                    <View
-                      style={{
-                        backgroundColor: index === 0 ? Colors.info : theme.text,
-                        width: 3,
-                        flex: 1,
-                        borderRadius: 5,
-                      }}
-                    />
-                  </View>
-                  <View
-                    style={{
-                      marginLeft: 10,
-                      flex: 1,
-                      justifyContent: "center",
-                    }}>
-                    <ThemedText font="medium" type="semiSmall">
-                      {finded?.title}
-                    </ThemedText>
-                    <ThemedText font="light" type="small">
-                      {moment(item.createdAt).format("DD MMM YYYY HH:mm")}
-                    </ThemedText>
-                  </View>
-                </View>
+                  index={index}
+                  title={finded?.title ?? ""}
+                  date={item.createdAt}
+                />
               );
-            }
-          )}
+            })}
           <Divider height={20} />
           <ThemedText font="medium" type="default">
             Details
@@ -289,14 +295,6 @@ export default function OrderDetailScreen() {
               onPress={showAlert}
             />
           )}
-          {trxData.status > 1 && (
-            <ThemedButton
-              // disabled={pay && validBalance ? false : true}
-              title="Check Status"
-              type="info"
-              onPress={showAlert}
-            />
-          )}
         </View>
       )}
       <Divider height={50} />
@@ -361,5 +359,22 @@ const styles = StyleSheet.create({
   paymentDetails: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  requester: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  requesterImage: {
+    height: 50,
+    width: 50,
+    borderRadius: 50,
+    resizeMode: "contain",
+    marginRight: 15,
+  },
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

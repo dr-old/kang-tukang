@@ -1,10 +1,13 @@
-import { Colors } from "@/constants/Colors";
 import { Platform, StyleSheet, View } from "react-native";
 import HeaderBack from "./HeaderBack";
 
-const Header = (props?: any) => {
+const Header = ({ backgroundColor }: { backgroundColor?: string }) => {
   return Platform.OS === "ios" ? (
-    <View style={styles.headerFix}>
+    <View
+      style={{
+        ...styles.headerFix,
+        backgroundColor: backgroundColor || "transparent",
+      }}>
       <HeaderBack />
     </View>
   ) : (
@@ -21,7 +24,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 10,
     paddingTop: 4,
-    backgroundColor: Colors.warning,
   },
   headerAndroid: {
     justifyContent: "flex-end",

@@ -13,11 +13,7 @@ export const useAccountActions = () => {
     realm.write(() => {
       let existingAccount = realm
         .objects(Account)
-        .filtered(
-          "userId == $0 AND accountType == $1",
-          userId,
-          account.accountType
-        )[0];
+        .filtered("userId == $0", userId)[0];
 
       if (existingAccount) {
         // Increment the balance
