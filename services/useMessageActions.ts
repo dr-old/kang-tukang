@@ -67,10 +67,22 @@ export const useMessageActions = () => {
       .filtered(`${filterKey} == $0`, new Realm.BSON.ObjectId(userId));
   };
 
+  const getAllMessage = (userId: string) => {
+    return realm
+      .objects(Message)
+      .filtered(
+        `receiver == $0 || sender == $1`,
+        new Realm.BSON.ObjectId(userId),
+        new Realm.BSON.ObjectId(userId)
+      )
+      .sorted("createdAt", true);
+  };
+
   return {
     createMessage,
     updateMessageStatus,
     deleteMessage,
     getMessages,
+    getAllMessage,
   };
 };

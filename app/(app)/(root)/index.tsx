@@ -11,6 +11,8 @@ export default function SignOut() {
     return <Redirect href="/(tabs)" />;
   } else if (isLoggedIn && profile?.role === "handyman") {
     return <Redirect href="/(tabs-handyman)" />;
+  } else if (!isLoggedIn) {
+    return <Redirect href="/auth" />;
   }
 
   return (

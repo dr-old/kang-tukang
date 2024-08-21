@@ -11,12 +11,6 @@ export default function AppLayout() {
       <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="register" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="sign-in"
-        options={{
-          presentation: "modal",
-        }}
-      />
     </Stack>
   );
 }

@@ -51,6 +51,7 @@ export function BaseLayout({
         {enableScroll ? (
           <ScrollView contentContainerStyle={[{ flexGrow: 1 }, style]}>
             {children}
+            <Divider height={50} />
           </ScrollView>
         ) : (
           <ThemedView style={[{ flex: 1 }, style]}>{children}</ThemedView>

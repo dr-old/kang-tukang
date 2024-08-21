@@ -36,7 +36,7 @@ export default function TabLayout() {
         options={{
           title: "Orders",
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="(message)"
         options={{
@@ -48,7 +48,7 @@ export default function TabLayout() {
         options={{
           title: "Profile",
         }}
-      /> */}
+      />
     </Tabs>
   );
 }
