@@ -13,16 +13,16 @@ export const useMessageActions = () => {
   const createMessage = (messageData: {
     title: string;
     message: string;
-    sender?: Realm.BSON.ObjectId;
-    receiver?: Realm.BSON.ObjectId;
+    sender?: string;
+    receiver?: string;
   }) => {
     try {
       realm.write(() => {
         realm.create(Message, {
           title: messageData.title,
           message: messageData.message,
-          sender: messageData?.sender || userId,
-          receiver: messageData?.receiver || userId,
+          sender: new Realm.BSON.ObjectId(messageData?.sender) || userId,
+          receiver: new Realm.BSON.ObjectId(messageData?.receiver) || userId,
           status: 1,
           type: 1,
         });

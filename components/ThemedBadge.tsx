@@ -1,13 +1,8 @@
 import React, { ReactNode } from "react";
-import {
-  View,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
-  useColorScheme,
-} from "react-native";
+import { View, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { Colors } from "@/constants/Colors"; // Adjust the path as needed
 import { ThemedText } from "./ThemedText";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 interface ThemedBadgeProps {
   title: string;
@@ -26,7 +21,7 @@ export function ThemedBadge({
   textStyle,
   alignSelf = "flex-start",
 }: ThemedBadgeProps) {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
   return (
     <View
       style={[

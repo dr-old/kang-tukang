@@ -1,15 +1,10 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
-import {
-  Modal,
-  StyleSheet,
-  Pressable,
-  ViewStyle,
-  useColorScheme,
-} from "react-native";
+import { Modal, StyleSheet, Pressable, ViewStyle } from "react-native";
 import * as Animatable from "react-native-animatable";
 import { hexToRgba } from "../utils/helpers";
 import { ToastProvider } from "./useToast";
 import { Colors } from "@/constants/Colors";
+import { useThemeToggle } from "./useThemeToggle";
 
 interface ModalContextProps {
   showModal: (
@@ -33,7 +28,7 @@ export const ModalProvider = ({ children }: ModalProviderProps) => {
   const [modalContent, setModalContent] = useState<ReactNode | undefined>(
     undefined
   );
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
   const styles = styling(Colors[colorScheme ?? "light"]);
 
   const showModal = (

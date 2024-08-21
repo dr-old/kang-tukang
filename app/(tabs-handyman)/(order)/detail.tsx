@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
@@ -12,6 +12,7 @@ import { useLocalSearchParams } from "expo-router";
 import NotFound from "@/components/NotFound";
 import Divider from "@/components/Divider";
 import {
+  directWhatsapp,
   formatCurrency,
   hexToRgba,
   toast,
@@ -20,20 +21,19 @@ import {
 import { useTransactionDetail } from "@/services/useTransactionDetailActions";
 import { useServiceActions } from "@/services/useServiceActions";
 import { useAccountActions } from "@/services/useAccountActions";
-import { MaterialIcons } from "@expo/vector-icons";
 import { ThemedButton } from "@/components/ThemedButton";
 import { useModal } from "@/hooks/useModal";
 import ModalAlert from "@/components/ModalAlert";
-import { useAccountLogActions } from "@/services/useAccountLogActions";
-import { BSON } from "realm";
 import { useMessageActions } from "@/services/useMessageActions";
 import { useTransactionActions } from "@/services/useTransactionActions";
 import OrderData from "@/components/OrderData";
 import { CollapsibleService } from "@/components/CollapsibleService";
 import Dashed from "@/components/Dashed";
 import { useTransactionLogActions } from "@/services/useTransactionLogActions";
-import moment from "moment";
 import OrderPayment from "@/components/OrderPayment";
+import OrderHistory from "@/components/OrderHistory";
+import { Ionicons } from "@expo/vector-icons";
+import { useUserActions } from "@/services/useUserActions";
 import OrderCart from "@/components/OrderCart";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
 
@@ -43,12 +43,11 @@ export default function OrderDetailScreen() {
   const { updateTransaction } = useTransactionActions();
   const { getTransactionDetailsByTrxId } = useTransactionDetail();
   const { getServiceById } = useServiceActions();
-  const { getBalanceByUserid, decrementBalance, getByUserid } =
-    useAccountActions();
-  const { createLog } = useAccountLogActions();
+  const { getBalanceByUserid } = useAccountActions();
   const { createMessage } = useMessageActions();
   const { createTransactionLog, getTransactionLogByTrxid } =
     useTransactionLogActions();
+  const { getUserById } = useUserActions();
   const { trxId } = useLocalSearchParams();
   const realm = useRealm();
   const { colorScheme } = useThemeToggle();
@@ -78,6 +77,10 @@ export default function OrderDetailScreen() {
     return getTransactionDetailsByTrxId(trxId.toString());
   }, [trxId]);
 
+  const trxRequester = useMemo(() => {
+    return getUserById(trxData.userId.toString());
+  }, [trxData]);
+
   useEffect(() => {
     realm.subscriptions.update((mutableSubs) => {
       mutableSubs.add(trx);
@@ -88,47 +91,55 @@ export default function OrderDetailScreen() {
     });
   }, [realm, trx]);
 
-  const handlePay = () => {
-    // console.log(getBalanceByUserid(), trxData.totalPrice);
+  const handleBid = () => {
     try {
-      decrementBalance(trxData.totalPrice);
-      const data = {
-        accountName: "Decrement Balance",
-        accountType: 1,
-        status: 1,
-        balance: trxData.totalPrice,
-      };
-      createLog({ ...data, accountId: new BSON.ObjectId(getByUserid()?._id) });
+      const message = transactionStatus(trx[0].trxId, trx[0].totalPrice, 4);
       createMessage({
-        title: "Yeah, Order Payment Successful",
-        message: `Your order has been successfully pay with ${formatCurrency(
-          trxData.totalPrice,
-          "Rp"
-        )} for main balance.`,
+        title: message?.subtitle ?? "",
+        message: message?.message ?? "",
+        receiver: trxData.userId.toString(),
+        sender: userId.toString(),
       });
       createTransactionLog({
         trxId,
-        requesterId: userId,
-        responderId: "",
-        status: 3,
+        requesterId: trxData.userId,
+        responderId: userId.toString(),
+        status: 4,
       });
-      updateTransaction(trxData._id.toString(), { status: 3 });
-      toast("Order payment is successfull!");
+      updateTransaction(trxData._id.toString(), {
+        status: 4,
+        handymanId: userId.toString(),
+      });
+      toast("Order successfully received!");
     } catch (error: any) {
       console.error(error?.message);
-      toast("Something wrong, order payment is failed!" || error?.message);
+      toast("Something wrong!" || error?.message);
     } finally {
       hideModal();
     }
   };
 
+  const handleDone = () => {};
+
   const showAlert = () => {
     showModal(
       <ModalAlert
-        onConfirm={handlePay}
-        message="Are you sure you want to proceed with the payment for this order?"
-        title="Confirm Payment"
-        labelConfirm="Yes, Pay Now"
+        onConfirm={handleBid}
+        message="Are you sure you want to accept this bid?"
+        title="Confirm Bid"
+        labelConfirm="Yes, Accept Bid"
+        labelCancel="Cancel"
+      />
+    );
+  };
+
+  const showDoneAlert = () => {
+    showModal(
+      <ModalAlert
+        onConfirm={handleDone} // Function to handle marking the order as done
+        message="Are you sure you want to mark this order as completed?"
+        title="Order Completion"
+        labelConfirm="Yes, Complete Order"
         labelCancel="Cancel"
       />
     );
@@ -168,6 +179,31 @@ export default function OrderDetailScreen() {
             }}
           />
           <ThemedText font="medium" type="default">
+            Requested
+          </ThemedText>
+          <Divider height={5} />
+          <View style={styles.requester}>
+            <Image
+              source={{ uri: profile?.photo }}
+              style={styles.requesterImage}
+            />
+            <View style={{ flex: 1 }}>
+              <ThemedText font="semiBold" type="default">
+                {trxRequester?.name}
+              </ThemedText>
+              <ThemedText font="regular" type="semiSmall">
+                Requester
+              </ThemedText>
+              <View style={styles.rowBetween}></View>
+            </View>
+            <Ionicons
+              name="logo-whatsapp"
+              size={24}
+              onPress={() => directWhatsapp(trxRequester?.phone)}
+            />
+          </View>
+          <Divider height={20} />
+          <ThemedText font="medium" type="default">
             History
           </ThemedText>
           {getTransactionLogByTrxid(trxId.toString()).map(
@@ -178,47 +214,12 @@ export default function OrderDetailScreen() {
                 item.status
               );
               return (
-                <View
+                <OrderHistory
                   key={index.toString()}
-                  style={{
-                    flexDirection: "row",
-                    opacity: index === 0 ? 1 : 0.5,
-                    height: 50,
-                  }}>
-                  <View
-                    style={{
-                      alignItems: "center",
-                    }}>
-                    <MaterialIcons
-                      name={
-                        index === 0 ? "radio-button-on" : "radio-button-off"
-                      }
-                      size={20}
-                      color={index === 0 ? Colors.info : theme.text}
-                    />
-                    <View
-                      style={{
-                        backgroundColor: index === 0 ? Colors.info : theme.text,
-                        width: 3,
-                        flex: 1,
-                        borderRadius: 5,
-                      }}
-                    />
-                  </View>
-                  <View
-                    style={{
-                      marginLeft: 10,
-                      flex: 1,
-                      justifyContent: "center",
-                    }}>
-                    <ThemedText font="medium" type="semiSmall">
-                      {finded?.title}
-                    </ThemedText>
-                    <ThemedText font="light" type="small">
-                      {moment(item.createdAt).format("DD MMM YYYY HH:mm")}
-                    </ThemedText>
-                  </View>
-                </View>
+                  index={index}
+                  title={finded?.title ?? ""}
+                  date={item.createdAt}
+                />
               );
             }
           )}
@@ -281,20 +282,18 @@ export default function OrderDetailScreen() {
             </ThemedText>
           </View>
           <Divider height={50} />
-          {trxData.status === 1 && (
+          {trxData.status === 3 && (
             <ThemedButton
-              disabled={pay && validBalance ? false : true}
-              title="Confirm Payment"
+              title={"Confirm"}
               type="primary"
               onPress={showAlert}
             />
           )}
-          {trxData.status > 1 && (
+          {trxData.status === 4 && (
             <ThemedButton
-              // disabled={pay && validBalance ? false : true}
-              title="Check Status"
-              type="info"
-              onPress={showAlert}
+              title={"Confirm Complete"}
+              type="success"
+              onPress={showDoneAlert}
             />
           )}
         </View>
@@ -361,5 +360,22 @@ const styles = StyleSheet.create({
   paymentDetails: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  requester: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  requesterImage: {
+    height: 50,
+    width: 50,
+    borderRadius: 50,
+    resizeMode: "contain",
+    marginRight: 15,
+  },
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

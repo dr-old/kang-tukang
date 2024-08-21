@@ -17,6 +17,7 @@ interface InputProps {
   suffix?: ReactNode;
   radius?: number;
   style?: any;
+  keyboardType?: any;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -33,6 +34,7 @@ export const Input: React.FC<InputProps> = ({
   suffix,
   radius,
   style,
+  keyboardType,
 }) => {
   return (
     <Form
@@ -49,6 +51,7 @@ export const Input: React.FC<InputProps> = ({
         placeholder={placeholder}
         style={styles.input}
         secureTextEntry={secureTextEntry}
+        keyboardType={keyboardType}
       />
     </Form>
   );

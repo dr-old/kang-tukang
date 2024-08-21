@@ -30,6 +30,7 @@ export type UserStoreType = {
     phone: string;
     photo: string;
     address: string;
+    role: string;
     updatedAt: Date;
   };
   isLoggedIn?: boolean;

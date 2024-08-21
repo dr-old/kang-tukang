@@ -1,4 +1,4 @@
-import { StyleSheet, View, useColorScheme } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
@@ -11,10 +11,12 @@ import Divider from "@/components/Divider";
 import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
 import { Message } from "@/schemes/MessageScheme";
+import NotFound from "@/components/NotFound";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 export default function MessageScreen() {
   const realm = useRealm();
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
   const { profile } = useUserStore() as unknown as UserStoreType;
   const userId = new Realm.BSON.ObjectId(profile?._id);
   const message = useQuery(
@@ -48,38 +50,42 @@ export default function MessageScreen() {
           ...styles.order,
           backgroundColor: Colors[colorScheme ?? "light"].background,
         }}>
-        {message.map((item: any, index: number) => {
-          // const category = services.find((i) => i.id === item.category);
-          return (
-            <View
-              key={index.toString()}
-              style={{
-                ...styles.orderItem,
-                borderBottomColor:
-                  message.length - 1 === index
-                    ? "transparent"
-                    : Colors.borderYellow,
-              }}>
-              <AntDesign
-                name="exclamationcircle"
-                color={Colors.warning}
-                size={20}
-              />
-              <Divider width={18} height={0} />
-              <View style={{ flex: 1 }}>
-                <ThemedText font="medium" type="default">
-                  {item.title}
-                </ThemedText>
-                <ThemedText font="regular" type="semiSmall">
-                  {item.message}
-                </ThemedText>
-                <ThemedText font="regular" type="semiSmall">
-                  {moment(item.createdAt).format("DD MMMM YYYY HH:mm")}
-                </ThemedText>
+        {message?.length > 0 ? (
+          message.map((item: any, index: number) => {
+            // const category = services.find((i) => i.id === item.category);
+            return (
+              <View
+                key={index.toString()}
+                style={{
+                  ...styles.orderItem,
+                  borderBottomColor:
+                    message.length - 1 === index
+                      ? "transparent"
+                      : Colors.borderYellow,
+                }}>
+                <AntDesign
+                  name="exclamationcircle"
+                  color={Colors.warning}
+                  size={20}
+                />
+                <Divider width={18} height={0} />
+                <View style={{ flex: 1 }}>
+                  <ThemedText font="medium" type="default">
+                    {item.title}
+                  </ThemedText>
+                  <ThemedText font="regular" type="semiSmall">
+                    {item.message}
+                  </ThemedText>
+                  <ThemedText font="regular" type="semiSmall">
+                    {moment(item.createdAt).format("DD MMMM YYYY HH:mm")}
+                  </ThemedText>
+                </View>
               </View>
-            </View>
-          );
-        })}
+            );
+          })
+        ) : (
+          <NotFound />
+        )}
       </View>
     </BaseLayout>
   );

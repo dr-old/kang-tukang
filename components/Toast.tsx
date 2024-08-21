@@ -6,7 +6,6 @@ import {
   Animated,
   Platform,
   Dimensions,
-  useColorScheme,
 } from "react-native";
 import { hexToRgba } from "../utils/helpers";
 import * as Animatable from "react-native-animatable";
@@ -14,6 +13,7 @@ import Divider from "./Divider";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 export interface ToastStatus {
   status: "success" | "error" | "warning" | "info";
@@ -34,7 +34,7 @@ const Toast: React.FC<ToastProps> = ({
   visible,
   onHide,
 }) => {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
   const styles = styling(Colors[colorScheme ?? "light"]);
   const viewRef = useRef<any>(null);
 

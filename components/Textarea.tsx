@@ -4,6 +4,7 @@ import ErrorMessage from "./ErrorMessage";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Colors } from "@/constants/Colors";
 import { ThemedText } from "./ThemedText";
+import { responsiveHeight } from "@/utils/sizing";
 
 interface TextareaProps {
   name: string;
@@ -12,6 +13,7 @@ interface TextareaProps {
   onBlur: (name: string) => void;
   error?: string[];
   placeholder?: string;
+  style?: any;
 }
 
 export const Textarea: React.FC<TextareaProps> = ({
@@ -21,6 +23,7 @@ export const Textarea: React.FC<TextareaProps> = ({
   onBlur,
   error,
   placeholder,
+  style,
 }) => {
   const color = useThemeColor({}, "input");
 
@@ -41,10 +44,14 @@ export const Textarea: React.FC<TextareaProps> = ({
         multiline
         numberOfLines={4}
         style={[
+          style,
           styles.textarea,
           {
             backgroundColor: color,
-            borderColor: error ? Colors.danger : color,
+            borderColor:
+              error && error?.length > 0
+                ? Colors.danger
+                : style?.borderColor || color,
           },
         ]}
       />
@@ -59,10 +66,11 @@ const styles = StyleSheet.create({
   },
   textarea: {
     borderWidth: 2,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 10,
     textAlignVertical: "top",
+    minHeight: responsiveHeight(40),
   },
   errorText: {
     color: "red",

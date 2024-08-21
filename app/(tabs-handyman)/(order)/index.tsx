@@ -9,9 +9,10 @@ import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
 import { Transaction } from "@/schemes/TransactionScheme";
 import { useEffect } from "react";
-import { services, trxStatus } from "@/constants/Constant";
+import { services } from "@/constants/Constant";
 import NotFound from "@/components/NotFound";
 import { router } from "expo-router";
+import { transactionStatus } from "@/utils/helpers";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 export default function OrderScreen() {
@@ -23,7 +24,9 @@ export default function OrderScreen() {
     {
       type: Transaction,
       query: (collection) =>
-        collection.filtered("userId == $0", userId).sorted("createdAt", true),
+        collection
+          .filtered("handymanId == $0", userId.toString())
+          .sorted("createdAt", true),
     },
     [userId]
   );
@@ -53,13 +56,17 @@ export default function OrderScreen() {
         {trx?.length > 0 ? (
           trx.map((item: any, index: number) => {
             const category = services.find((i) => i.id === item.category);
-            const status = trxStatus.find((i) => i.id === item.status);
+            const status = transactionStatus(
+              item.trxId,
+              item.totalPrice,
+              item.status
+            );
             return (
               <TouchableOpacity
                 key={index.toString()}
                 onPress={() =>
                   router.push({
-                    pathname: "/(order)/detail",
+                    pathname: "/order/detail",
                     params: { trxId: item.trxId },
                   })
                 }

@@ -5,11 +5,10 @@ import { BaseLayout } from "@/components/BaseLayout";
 import { Colors } from "@/constants/Colors";
 import { responsiveHeight, responsiveWidth } from "@/utils/sizing";
 import { Input } from "@/components/Input";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AntDesign, Feather, Fontisto } from "@expo/vector-icons";
-import { formatCurrency } from "@/utils/helpers";
+import { formatCurrency, transactionStatus } from "@/utils/helpers";
 import { services } from "@/constants/Constant";
-import Card from "@/components/Card";
 import { router } from "expo-router";
 import { useModal } from "@/hooks/useModal";
 import ModalImage from "@/components/ModalImage";
@@ -21,6 +20,10 @@ import { useUserStore } from "@/stores/user/userStore";
 import { Account } from "@/schemes/AccountScheme";
 import { AccountLog } from "@/schemes/AccountLogScheme";
 import { Message } from "@/schemes/MessageScheme";
+import { Transaction } from "@/schemes/TransactionScheme";
+import NotFound from "@/components/NotFound";
+import { useTransactionActions } from "@/services/useTransactionActions";
+import OrderCard from "@/components/OrderCard";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 export default function HomeScreen() {
@@ -30,6 +33,8 @@ export default function HomeScreen() {
   const balance = 20000;
   const { showToast } = useToast();
   const { profile } = useUserStore() as unknown as UserStoreType;
+  const { getTransactionByStatus, getTransactionByStatusAndHandymanId } =
+    useTransactionActions();
   const userId = new Realm.BSON.ObjectId(profile?._id);
   const realm = useRealm();
   const account = useQuery(
@@ -46,7 +51,6 @@ export default function HomeScreen() {
     },
     [userId]
   );
-
   const message = useQuery(
     {
       type: Message,
@@ -54,6 +58,19 @@ export default function HomeScreen() {
     },
     [userId]
   );
+  const trx = useQuery(Transaction);
+
+  const transactionOpen = useMemo(() => {
+    return getTransactionByStatus(3, true);
+  }, [getTransactionByStatus]);
+
+  const transactionMyProgress = useMemo(() => {
+    return getTransactionByStatusAndHandymanId(4, userId.toString(), true);
+  }, [getTransactionByStatusAndHandymanId, userId]);
+
+  const transactionMyCompleted = useMemo(() => {
+    return getTransactionByStatusAndHandymanId(5, userId.toString(), true);
+  }, [getTransactionByStatusAndHandymanId, userId]);
 
   const showImage = () => {
     showModal(<ModalImage />);
@@ -77,8 +94,9 @@ export default function HomeScreen() {
       mutableSubs.add(account);
       mutableSubs.add(accountLog);
       mutableSubs.add(message);
+      mutableSubs.add(trx);
     });
-  }, [realm, account, accountLog, message]);
+  }, [realm, account, accountLog, message, trx]);
 
   return (
     <BaseLayout
@@ -129,7 +147,7 @@ export default function HomeScreen() {
           }}>
           <View style={styles.flex}>
             <ThemedText font="medium" type="semiSmall">
-              Saldo tersisa
+              Your balance
             </ThemedText>
             <ThemedText
               font="medium"
@@ -151,57 +169,129 @@ export default function HomeScreen() {
               style={{ marginRight: 10 }}
             />
             <ThemedText font="medium" type="semiSmall">
-              Isi Saldo
+              Top-up
             </ThemedText>
           </TouchableOpacity>
         </View>
       </View>
+      {/* transaction open */}
       <View
         style={{
           ...styles.balance,
           ...styles.serviceCard,
+          marginTop: -64,
           backgroundColor: Colors[colorScheme ?? "light"].background,
         }}>
         <View style={styles.flex}>
-          <ThemedText font="medium">Services Kangtukang</ThemedText>
-          <View style={styles.service}>
-            {services.map((item, index) => (
-              <TouchableOpacity
-                key={index.toString()}
-                activeOpacity={0.8}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(home)/feature",
-                    params: {
-                      id: item.id,
-                      title: item.title,
-                      image: item.image,
-                    },
-                  })
-                }
-                style={styles.serviceItem}>
-                <Image
-                  source={item.image}
-                  style={{ height: 60, width: 100 }}
-                  resizeMode="contain"
+          <ThemedText font="medium">Need Handyman Now</ThemedText>
+          {transactionOpen?.length > 0 ? (
+            transactionOpen.map((item: any, index: number) => {
+              const category = services.find((i) => i.id === item.category);
+              const status = transactionStatus(
+                item.trxId,
+                item.totalPrice,
+                item.status
+              );
+              return (
+                <OrderCard
+                  key={index.toString()}
+                  title={category?.title ?? ""}
+                  status={status?.title ?? ""}
+                  image={category?.image}
+                  date={item.createdAt}
+                  last={trx.length - 1 === index}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(order)/detail",
+                      params: { trxId: item.trxId },
+                    })
+                  }
                 />
-              </TouchableOpacity>
-            ))}
-          </View>
+              );
+            })
+          ) : (
+            <NotFound ph={0} enableIcon={false} />
+          )}
         </View>
       </View>
-      <View style={{ paddingHorizontal: 27 }}>
-        <ThemedText font="medium">Recommend</ThemedText>
-        <View style={{ marginTop: 15 }}>
-          {[1, 2, 3, 4, 5].map((_, index) => (
-            <Card
-              key={index.toString()}
-              imageSource={require("@/assets/images/content.png")}
-              title="Card Title"
-              description="This is a brief description of the content inside the card. It gives an overview of what to expect."
-              onReadMore={() => console.log()}
-            />
-          ))}
+      {/* transaction my progress */}
+      <View
+        style={{
+          ...styles.balance,
+          ...styles.serviceCard,
+          marginTop: 10,
+          backgroundColor: Colors[colorScheme ?? "light"].background,
+        }}>
+        <View style={styles.flex}>
+          <ThemedText font="medium">My Order Progress</ThemedText>
+          {transactionMyProgress?.length > 0 ? (
+            transactionMyProgress.map((item: any, index: number) => {
+              const category = services.find((i) => i.id === item.category);
+              const status = transactionStatus(
+                item.trxId,
+                item.totalPrice,
+                item.status
+              );
+              return (
+                <OrderCard
+                  key={index.toString()}
+                  title={category?.title ?? ""}
+                  status={status?.title ?? ""}
+                  image={category?.image}
+                  date={item.createdAt}
+                  last={trx.length - 1 === index}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/order/detail",
+                      params: { trxId: item.trxId },
+                    })
+                  }
+                />
+              );
+            })
+          ) : (
+            <NotFound ph={0} enableIcon={false} />
+          )}
+        </View>
+      </View>
+      {/* transaction my completed */}
+      <View
+        style={{
+          ...styles.balance,
+          ...styles.serviceCard,
+          marginTop: 10,
+          backgroundColor: Colors[colorScheme ?? "light"].background,
+        }}>
+        <View style={styles.flex}>
+          <ThemedText font="medium">My Order Completed</ThemedText>
+          {transactionMyCompleted?.length > 0 ? (
+            transactionMyCompleted.map((item: any, index: number) => {
+              const category = services.find((i) => i.id === item.category);
+              const status = transactionStatus(
+                item.trxId,
+                item.totalPrice,
+                item.status
+              );
+              return (
+                <OrderCard
+                  key={index.toString()}
+                  title={category?.title ?? ""}
+                  status={status?.title ?? ""}
+                  image={category?.image}
+                  date={item.createdAt}
+                  last={trx.length - 1 === index}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/order/detail",
+                      params: { trxId: item.trxId },
+                    })
+                  }
+                />
+              );
+            })
+          ) : (
+            <NotFound ph={0} enableIcon={false} />
+          )}
         </View>
       </View>
     </BaseLayout>
@@ -239,7 +329,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   serviceCard: {
-    marginTop: -64,
     marginHorizontal: 27,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
@@ -262,4 +351,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   serviceText: { marginBottom: 10 },
+  order: {
+    marginTop: -50,
+    marginHorizontal: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderRadius: 20,
+  },
 });

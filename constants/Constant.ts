@@ -17,13 +17,63 @@ export const services = [
 ];
 
 export const trxStatus = [
-  { id: 1, title: "Await Payment", type: "warning" },
-  { id: 2, title: "Check Payment", type: "warning" },
-  { id: 3, title: "Find Repairman", type: "info" },
-  { id: 4, title: "In Progress", type: "info" },
-  { id: 5, title: "Done", type: "success" },
-  { id: 6, title: "Cancel By User", type: "danger" },
-  { id: 7, title: "Cancel By Repairman", type: "danger" },
+  [
+    {
+      id: 1,
+      title: "Await Payment",
+      type: "warning",
+      message:
+        "Your order is awaiting payment. Please complete the payment to proceed.",
+      subtitle: "Payment Pending",
+    },
+    {
+      id: 2,
+      title: "Check Payment",
+      type: "warning",
+      message: "We're checking your payment. This may take a few minutes.",
+      subtitle: "Verifying Payment",
+    },
+    {
+      id: 3,
+      title: "Find Repairman",
+      type: "info",
+      message:
+        "We're locating a repairman for your service request. Please wait.",
+      subtitle: "Searching for Repairman",
+    },
+    {
+      id: 4,
+      title: "In Progress",
+      type: "info",
+      message:
+        "Your service request is in progress. The repairman is working on it.",
+      subtitle: "Service In Progress",
+    },
+    {
+      id: 5,
+      title: "Done",
+      type: "success",
+      message:
+        "Your service has been completed successfully. Thank you for using our service!",
+      subtitle: "Yeah, order has been completed",
+    },
+    {
+      id: 6,
+      title: "Cancel By User",
+      type: "danger",
+      message:
+        "You have canceled the service request. We hope to assist you again soon.",
+      subtitle: "Service Canceled by You",
+    },
+    {
+      id: 7,
+      title: "Cancel By Repairman",
+      type: "danger",
+      message:
+        "The service request has been canceled by the repairman. Please contact support for assistance.",
+      subtitle: "Service Canceled by Repairman",
+    },
+  ],
 ];
 
 export const accountStatus = [

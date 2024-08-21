@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  Dimensions,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from "react-native";
+import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import { formatCurrency, hexToRgba, toast } from "../utils/helpers";
 import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -17,6 +11,7 @@ import { useAccountActions } from "@/services/useAccountActions";
 import { useModal } from "@/hooks/useModal";
 import { useAccountLogActions } from "@/services/useAccountLogActions";
 import { useMessageActions } from "@/services/useMessageActions";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 interface ModalAlertProps {
   onConfirm?: () => void;
@@ -37,7 +32,7 @@ const ModalTopup: React.FC<ModalAlertProps> = ({
   const { topupBalance } = useAccountActions();
   const { createLog } = useAccountLogActions();
   const { createMessage } = useMessageActions();
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useThemeToggle();
   const theme = Colors[colorScheme ?? "light"];
   const styles = styling(theme);
   const [visible, setVisible] = useState(false);

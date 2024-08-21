@@ -32,6 +32,26 @@ export const useTransactionActions = () => {
     );
   };
 
+  // Read/Get a transaction by status and user id
+  const getTransactionByStatusAndHandymanId = (
+    status: number,
+    handymanId: string,
+    desc?: boolean
+  ) => {
+    return realm
+      .objects(Transaction)
+      .filtered("status == $0 AND handymanId == $1", status, handymanId)
+      .sorted("createdAt", desc);
+  };
+
+  // Read/Get a transaction by status
+  const getTransactionByStatus = (status: number, desc?: boolean) => {
+    return realm
+      .objects(Transaction)
+      .filtered("status == $0", status)
+      .sorted("createdAt", desc);
+  };
+
   // Update a transaction
   const updateTransaction = (
     transactionId: string,
@@ -70,13 +90,10 @@ export const useTransactionActions = () => {
   return {
     createTransaction,
     getTransactionById,
+    getTransactionByStatus,
+    getTransactionByStatusAndHandymanId,
     updateTransaction,
     deleteTransaction,
     getAllTransactions,
   };
-};
-
-// Example function to generate trxId
-const generateTrxId = () => {
-  return `TRX-${Date.now()}`;
 };
