@@ -1,4 +1,5 @@
 import { Cart } from "@/schemes/CartScheme";
+import { Service } from "@/schemes/ServiceScheme";
 import { TransactionDetail } from "@/schemes/TransactionDetailScheme";
 import { useRealm } from "@realm/react";
 import { Realm } from "realm";
@@ -57,6 +58,28 @@ export const useTransactionDetail = () => {
     return realm.objects(TransactionDetail).filtered("trxId == $0", trxId);
   };
 
+  const getServicesByTransactionId = (trxId: string) => {
+    try {
+      // Fetch all transaction details for the given trxId
+      const transactionDetails = realm
+        .objects(TransactionDetail)
+        .filtered("trxId == $0", trxId);
+
+      // Map through transaction details and retrieve the corresponding services
+      const services = transactionDetails.map((detail) => {
+        const service = detail.serviceId
+          ? realm.objectForPrimaryKey(Service, detail.serviceId)
+          : {};
+        return { ...detail, service };
+      });
+
+      return services;
+    } catch (error) {
+      console.error("Error retrieving service data:", error);
+      return [];
+    }
+  };
+
   const updateTransactionDetail = (
     id: string,
     updates: Partial<TransactionDetail>
@@ -98,6 +121,7 @@ export const useTransactionDetail = () => {
     createTransactionDetail,
     createMultipleTransactionDetail,
     getTransactionDetailsByTrxId,
+    getServicesByTransactionId,
     updateTransactionDetail,
     deleteTransactionDetail,
     getCartDataByUserAndService,

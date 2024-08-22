@@ -3,7 +3,7 @@ import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
 import { Realm, useQuery, useRealm } from "@realm/react";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
 import ServiceCardMultiple from "@/components/ServiceCardMultiple";
@@ -31,35 +31,11 @@ import { Transaction } from "@/schemes/TransactionScheme";
 import { TransactionLog } from "@/schemes/TransactionLogScheme";
 import { TransactionDetail } from "@/schemes/TransactionDetailScheme";
 
-interface LocalProps {
-  id: number;
-  title: string;
-  image: any;
-}
-
-interface ServiceCardProps {
-  id: string;
-  title: string;
-  description?: string;
-  price: number;
-  category: number;
-  border?: string;
-}
-
 export default function FeatureScreen() {
   const { createTransaction } = useTransactionActions();
   const { createMultipleTransactionDetail } = useTransactionDetail();
   const { createTransactionLog } = useTransactionLogActions();
-  const {
-    getTotalQuantity,
-    getTotalPrice,
-    deleteAllByUser,
-    addToCart,
-    incrementQuantity,
-    decrementQuantity,
-    getQuantity,
-    getCartByUserid,
-  } = useCartActions();
+  const { getTotalQuantity, getTotalPrice, deleteAllByUser } = useCartActions();
   const { createMessage } = useMessageActions();
   const { getServiceByCategory } = useServiceActions();
   const { id, title } = useLocalSearchParams();
@@ -78,23 +54,6 @@ export default function FeatureScreen() {
     },
     [category, userId]
   );
-
-  // const carts = useQuery(
-  //   {
-  //     type: Cart,
-  //     query: (collection) =>
-  //       collection.filtered("userId == $0 && category == $1", userId, category),
-  //   },
-  //   [userId, category]
-  // );
-  // const trx = useQuery(
-  //   {
-  //     type: Transaction,
-  //     query: (collection) => collection.filtered("userId == $0", userId),
-  //   },
-  //   [userId]
-  // );
-  // const { createMultipleServices } = useServiceActions();
 
   const handleContinue = () => {
     try {
@@ -125,14 +84,12 @@ export default function FeatureScreen() {
       if (newTrx && newTrxDetail && newTrxLog) {
         const message = transactionStatus(trxId, getTotalPrice(category), 1);
         createMessage({
-          title: message?.title ?? "",
+          title: message?.subtitle ?? "",
           message: message?.message ?? "",
-          sender: userId.toString(),
-          receiver: userId.toString(),
         });
         deleteAllByUser(category);
+        router.push("/(app)/(order)");
         toast("Please continue to payment order!");
-        // router.replace("/(order)");
       }
     } catch (error: any) {
       toast(error?.message || "Something wrong, transaction is failed!");

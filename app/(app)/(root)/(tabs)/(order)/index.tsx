@@ -1,23 +1,27 @@
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
 import { Realm, useQuery, useRealm } from "@realm/react";
-import moment from "moment";
 import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
 import { Transaction } from "@/schemes/TransactionScheme";
-import { useEffect } from "react";
-import { services, trxStatus } from "@/constants/Constant";
+import { useEffect, useMemo } from "react";
+import { services } from "@/constants/Constant";
 import NotFound from "@/components/NotFound";
 import { router } from "expo-router";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { useTransactionActions } from "@/services/useTransactionActions";
+import { transactionStatus } from "@/utils/helpers";
+import OrderCard from "@/components/OrderCard";
 
 export default function OrderScreen() {
   const { profile } = useUserStore() as unknown as UserStoreType;
   const userId = new Realm.BSON.ObjectId(profile?._id);
   const realm = useRealm();
+  const { getTransactionByUserid, getTransactionByHandymanId } =
+    useTransactionActions();
   const { colorScheme } = useThemeToggle();
   const trx = useQuery(
     {
@@ -28,11 +32,26 @@ export default function OrderScreen() {
     [userId]
   );
 
+  const trxMemo = useMemo(() => {
+    return profile?.role === "user"
+      ? trx
+      : profile?.role === "handyman"
+      ? getTransactionByHandymanId(profile._id.toString())
+      : [];
+  }, [trx, realm, getTransactionByHandymanId, profile]);
+
   useEffect(() => {
-    realm.subscriptions.update((mutableSubs) => {
-      mutableSubs.add(trx);
-    });
-  }, [realm, trx]);
+    realm.subscriptions
+      .update((mutableSubs) => {
+        mutableSubs.add(realm.objects(Transaction));
+      })
+      .then(() => {
+        console.log("Flexible Sync subscription created => (order)/index .");
+      })
+      .catch((error) => {
+        console.error("Error creating subscription => (order)/index :", error);
+      });
+  }, [realm]);
 
   return (
     <BaseLayout
@@ -50,39 +69,36 @@ export default function OrderScreen() {
           ...styles.order,
           backgroundColor: Colors[colorScheme ?? "light"].background,
         }}>
-        {trx?.length > 0 ? (
-          trx.map((item: any, index: number) => {
+        {trxMemo?.length > 0 ? (
+          trxMemo.map((item: any, index: number) => {
             const category = services.find((i) => i.id === item.category);
-            const status = trxStatus.find((i) => i.id === item.status);
+            const status = transactionStatus(
+              item.trxId,
+              item.totalPrice,
+              item.status
+            );
             return (
-              <TouchableOpacity
+              <OrderCard
                 key={index.toString()}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(order)/detail",
-                    params: { trxId: item.trxId },
-                  })
-                }
-                style={{
-                  ...styles.orderItem,
-                  borderBottomColor:
-                    trx.length - 1 === index
-                      ? "transparent"
-                      : Colors.borderYellow,
-                }}>
-                <Image source={category?.image} style={styles.orderImage} />
-                <View style={{ flex: 1 }}>
-                  <ThemedText font="medium" type="default">
-                    {category?.title}
-                  </ThemedText>
-                  <ThemedText font="regular" type="semiSmall">
-                    {status?.title}
-                  </ThemedText>
-                  <ThemedText font="regular" type="semiSmall">
-                    {moment(item.createdAt).format("DD MMMM YYYY HH:mm")}
-                  </ThemedText>
-                </View>
-              </TouchableOpacity>
+                title={category?.title ?? ""}
+                status={status?.title ?? ""}
+                image={category?.image}
+                date={item.createdAt}
+                last={trxMemo.length - 1 === index}
+                onPress={() => {
+                  if (profile?.role === "user") {
+                    router.push({
+                      pathname: "/(order)/detail",
+                      params: { trxId: item.trxId },
+                    });
+                  } else {
+                    router.push({
+                      pathname: "/(app)/(root)/order",
+                      params: { trxId: item.trxId },
+                    });
+                  }
+                }}
+              />
             );
           })
         ) : (

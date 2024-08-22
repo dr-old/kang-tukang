@@ -35,9 +35,11 @@ import OrderHistory from "@/components/OrderHistory";
 import { Ionicons } from "@expo/vector-icons";
 import { useUserActions } from "@/services/useUserActions";
 import OrderCart from "@/components/OrderCart";
-import HeaderBack from "@/components/HeaderBack";
 import { useAccountLogActions } from "@/services/useAccountLogActions";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { Message } from "@/schemes/MessageScheme";
+import { Account } from "@/schemes/AccountScheme";
+import { AccountLog } from "@/schemes/AccountLogScheme";
 
 export default function OrderDetailScreen() {
   const { profile } = useUserStore() as unknown as UserStoreType;
@@ -85,14 +87,20 @@ export default function OrderDetailScreen() {
   }, [trxData]);
 
   useEffect(() => {
-    realm.subscriptions.update((mutableSubs) => {
-      mutableSubs.add(trx);
-      mutableSubs.add(realm.objects("Account"));
-      mutableSubs.add(realm.objects("AccountLog"));
-      mutableSubs.add(realm.objects("TransactionLog"));
-      mutableSubs.add(realm.objects("Message"));
-    });
-  }, [realm, trx]);
+    realm.subscriptions
+      .update((mutableSubs) => {
+        mutableSubs.add(realm.objects(Transaction));
+        mutableSubs.add(realm.objects(Message));
+        mutableSubs.add(realm.objects(Account));
+        mutableSubs.add(realm.objects(AccountLog));
+      })
+      .then(() => {
+        console.log("Flexible Sync subscription created => (order)/detail.");
+      })
+      .catch((error) => {
+        console.error("Error creating subscription => (order)/detail :", error);
+      });
+  }, [realm]);
 
   const handleBid = () => {
     try {
@@ -188,9 +196,6 @@ export default function OrderDetailScreen() {
       darkBackgroundColor={Colors.warning}
       enableScroll={true}
       statusBarStyle="dark-content">
-      <View style={styles.headerFix}>
-        <HeaderBack />
-      </View>
       <View style={styles.header}>
         <ThemedText font="semiBold" type="normal">
           Order Detail

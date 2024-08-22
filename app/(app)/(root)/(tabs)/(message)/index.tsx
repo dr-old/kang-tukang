@@ -20,11 +20,10 @@ export default function MessageScreen() {
   const { colorScheme } = useThemeToggle();
   const { getAllMessage } = useMessageActions();
   const { profile } = useUserStore() as unknown as UserStoreType;
-  const userId = profile?._id;
 
   const message = useMemo(() => {
-    return getAllMessage(userId!.toString());
-  }, [getAllMessage, userId]);
+    return getAllMessage(profile!._id.toString());
+  }, [getAllMessage, profile, realm]);
 
   useEffect(() => {
     realm.subscriptions.update((mutableSubs) => {

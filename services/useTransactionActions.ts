@@ -2,6 +2,7 @@ import { Realm, useRealm } from "@realm/react";
 import { Transaction } from "@/schemes/TransactionScheme"; // Adjust the import path accordingly
 import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
+import { User } from "@/schemes/UserScheme";
 
 export const useTransactionActions = () => {
   const { profile } = useUserStore() as unknown as UserStoreType;
@@ -32,6 +33,24 @@ export const useTransactionActions = () => {
     );
   };
 
+  const getTransactionByTrxid = (trxId: string) => {
+    const transaction = realm
+      .objects(Transaction)
+      .filtered("trxId == $0", trxId)
+      .sorted("createdAt", true)[0];
+    if (transaction?.handymanId) {
+      const handyman = realm.objectForPrimaryKey(
+        User,
+        new Realm.BSON.ObjectId(transaction.handymanId)
+      );
+      if (handyman) {
+        const { _id, name, phone, photo, role } = handyman;
+        return { ...transaction, handyman: { _id, name, phone, photo, role } };
+      }
+    }
+    return transaction;
+  };
+
   // Read/Get a transaction by status and user id
   const getTransactionByStatusAndHandymanId = (
     status: number,
@@ -44,12 +63,26 @@ export const useTransactionActions = () => {
       .sorted("createdAt", desc);
   };
 
+  const getTransactionByHandymanId = (handymanId: string) => {
+    return realm
+      .objects(Transaction)
+      .filtered("handymanId == $0 && status > $1", handymanId, 1)
+      .sorted("createdAt", true);
+  };
+
   // Read/Get a transaction by status
   const getTransactionByStatus = (status: number, desc?: boolean) => {
     return realm
       .objects(Transaction)
       .filtered("status == $0", status)
       .sorted("createdAt", desc);
+  };
+
+  const getTransactionByUserid = (userId: string) => {
+    return realm
+      .objects(Transaction)
+      .filtered("userId == $0", new Realm.BSON.ObjectId(userId))
+      .sorted("createdAt", true);
   };
 
   // Update a transaction
@@ -90,6 +123,9 @@ export const useTransactionActions = () => {
   return {
     createTransaction,
     getTransactionById,
+    getTransactionByTrxid,
+    getTransactionByUserid,
+    getTransactionByHandymanId,
     getTransactionByStatus,
     getTransactionByStatusAndHandymanId,
     updateTransaction,

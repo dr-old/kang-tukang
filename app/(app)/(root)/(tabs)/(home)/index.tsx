@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { AntDesign, Feather, Fontisto } from "@expo/vector-icons";
 import { services } from "@/constants/Constant";
 import Card from "@/components/Card";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useModal } from "@/hooks/useModal";
 import ModalImage from "@/components/ModalImage";
 import ModalTopup from "@/components/ModalTopup";
@@ -20,8 +20,16 @@ import { formatCurrency } from "@/utils/helpers";
 import { Account } from "@/schemes/AccountScheme";
 import { AccountLog } from "@/schemes/AccountLogScheme";
 import { Message } from "@/schemes/MessageScheme";
+import { UserStoreType } from "@/utils/types";
+import { useUserStore } from "@/stores/user/userStore";
 
 export default function HomeScreen() {
+  const { profile, isLoggedIn } = useUserStore() as unknown as UserStoreType;
+
+  if (isLoggedIn && profile?.role === "handyman") {
+    return <Redirect href="/(app)/(home)/handyman" />;
+  }
+
   const { colorScheme } = useThemeToggle();
   const [search, setSearch] = useState("");
   const { showModal } = useModal();

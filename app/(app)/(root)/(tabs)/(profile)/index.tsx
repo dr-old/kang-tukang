@@ -17,12 +17,13 @@ import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 export default function ProfileScreen() {
   const { profile } = useUserStore() as unknown as UserStoreType;
-  const { colorScheme } = useThemeToggle();
+  const { colorScheme, toggleTheme } = useThemeToggle();
 
   const security = [
     {
       title: "Change Password",
       icon: "lock",
+      library: SimpleLineIcons,
       onPress: () => {
         router.push({
           pathname: "/(profile)/update-profile",
@@ -33,11 +34,20 @@ export default function ProfileScreen() {
     {
       title: "Change Phone Number",
       icon: "screen-smartphone",
+      library: SimpleLineIcons,
       onPress: () => {
         router.push({
           pathname: "/(profile)/update-profile",
           params: { id: 2, title: "Change Phone Number" },
         });
+      },
+    },
+    {
+      title: "Theme Mode",
+      icon: "invert-mode",
+      library: Ionicons,
+      onPress: () => {
+        toggleTheme();
       },
     },
   ];
@@ -132,7 +142,7 @@ export default function ProfileScreen() {
                 onPress={item.onPress}
                 style={styles.menuItem}>
                 <View style={styles.menuIcon}>
-                  <SimpleLineIcons name={item.icon} size={20} />
+                  <item.library name={item.icon} size={20} />
                 </View>
                 <ThemedText font="regular" style={{ flex: 1, marginLeft: 10 }}>
                   {item.title}

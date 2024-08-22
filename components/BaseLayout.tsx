@@ -43,9 +43,7 @@ export function BaseLayout({
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor }}>
-      <StatusBar
-        barStyle={colorScheme === "light" ? "dark-content" : "light-content"}
-      />
+      <StatusBar barStyle={"dark-content"} />
       {Platform.OS === "android" && enableHeader && <Divider height={50} />}
       <ThemedView style={{ flex: 1 }}>
         {enableScroll ? (

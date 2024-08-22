@@ -21,8 +21,12 @@ export const useMessageActions = () => {
         realm.create(Message, {
           title: messageData.title,
           message: messageData.message,
-          sender: new Realm.BSON.ObjectId(messageData?.sender) || userId,
-          receiver: new Realm.BSON.ObjectId(messageData?.receiver) || userId,
+          sender: messageData?.sender
+            ? new Realm.BSON.ObjectId(messageData?.sender)
+            : userId,
+          receiver: messageData?.receiver
+            ? new Realm.BSON.ObjectId(messageData?.receiver)
+            : userId,
           status: 1,
           type: 1,
         });

@@ -7,78 +7,42 @@ import { responsiveHeight, responsiveWidth } from "@/utils/sizing";
 import { Input } from "@/components/Input";
 import { useEffect, useMemo, useState } from "react";
 import { AntDesign, Feather, Fontisto } from "@expo/vector-icons";
-import { formatCurrency, transactionStatus } from "@/utils/helpers";
 import { services } from "@/constants/Constant";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useModal } from "@/hooks/useModal";
 import ModalImage from "@/components/ModalImage";
-import { useToast } from "@/hooks/useToast";
 import ModalTopup from "@/components/ModalTopup";
-import { Realm, useQuery, useRealm } from "@realm/react";
+import { useRealm } from "@realm/react";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { useAccountActions } from "@/services/useAccountActions";
+import { formatCurrency, transactionStatus } from "@/utils/helpers";
 import { UserStoreType } from "@/utils/types";
 import { useUserStore } from "@/stores/user/userStore";
-import { Account } from "@/schemes/AccountScheme";
-import { AccountLog } from "@/schemes/AccountLogScheme";
-import { Message } from "@/schemes/MessageScheme";
 import { Transaction } from "@/schemes/TransactionScheme";
-import NotFound from "@/components/NotFound";
 import { useTransactionActions } from "@/services/useTransactionActions";
 import OrderCard from "@/components/OrderCard";
-import { useThemeToggle } from "@/hooks/useThemeToggle";
+import NotFound from "@/components/NotFound";
 
-export default function HomeScreen() {
+export default function HandymanScreen() {
+  const { profile, isLoggedIn } = useUserStore() as unknown as UserStoreType;
+
+  if (isLoggedIn && profile?.role === "user") {
+    return <Redirect href="/(app)/(home)" />;
+  }
+  const { getTransactionByHandymanId, getTransactionByStatus } =
+    useTransactionActions();
   const { colorScheme } = useThemeToggle();
   const [search, setSearch] = useState("");
   const { showModal } = useModal();
   const balance = 20000;
-  const { showToast } = useToast();
-  const { profile } = useUserStore() as unknown as UserStoreType;
-  const { getTransactionByStatus, getTransactionByStatusAndHandymanId } =
-    useTransactionActions();
-  const userId = new Realm.BSON.ObjectId(profile?._id);
+  const { getBalanceByUserid } = useAccountActions();
   const realm = useRealm();
-  const account = useQuery(
-    {
-      type: Account,
-      query: (collection) => collection.filtered("userId == $0", userId),
-    },
-    [userId]
-  );
-  const accountLog = useQuery(
-    {
-      type: AccountLog,
-      query: (collection) => collection.filtered("userId == $0", userId),
-    },
-    [userId]
-  );
-  const message = useQuery(
-    {
-      type: Message,
-      query: (collection) => collection.filtered("receiver == $0", userId),
-    },
-    [userId]
-  );
-  const trx = useQuery(Transaction);
-
-  const transactionOpen = useMemo(() => {
-    return getTransactionByStatus(3, true);
-  }, [getTransactionByStatus]);
-
-  const transactionMyProgress = useMemo(() => {
-    return getTransactionByStatusAndHandymanId(4, userId.toString(), true);
-  }, [getTransactionByStatusAndHandymanId, userId]);
-  console.log("transactionMyProgress", transactionMyProgress);
-
-  const transactionMyCompleted = useMemo(() => {
-    return getTransactionByStatusAndHandymanId(5, userId.toString(), true);
-  }, [getTransactionByStatusAndHandymanId, userId]);
 
   const showImage = () => {
     showModal(<ModalImage />);
   };
 
   const showTopup = () => {
-    // showToast("Top-up successfully!", "success", "modal");
     showModal(<ModalTopup />);
   };
 
@@ -90,20 +54,119 @@ export default function HomeScreen() {
     showImage();
   }, []);
 
-  useEffect(() => {
-    realm.subscriptions.update((mutableSubs) => {
-      mutableSubs.add(account);
-      mutableSubs.add(accountLog);
-      mutableSubs.add(message);
-      mutableSubs.add(trx);
+  const transactionOpen = useMemo(() => {
+    return getTransactionByStatus(3, true);
+  }, [getTransactionByStatus]);
+
+  function sortTransactionsByStatusAsc(
+    transactions: Record<string, any[]>
+  ): Record<string, any[]> {
+    // Convert the keys to an array and sort them as numbers in ascending order
+    const sortedKeys = Object.keys(transactions).sort(
+      (a, b) => parseInt(a) - parseInt(b)
+    );
+
+    // Reconstruct the sorted object
+    const sortedTransactions: Record<string, any[]> = {};
+    sortedKeys.forEach((key) => {
+      sortedTransactions[key] = transactions[key];
     });
-  }, [realm, account, accountLog, message, trx]);
+
+    return sortedTransactions;
+  }
+
+  const groupedStatus = useMemo(() => {
+    const trx = getTransactionByHandymanId(profile!._id.toString()).reduce(
+      (acc: any, trx) => {
+        const key: any = trx.status; // Use _id as key if no groupId exists
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(trx);
+        return acc;
+      },
+      {}
+    );
+    return sortTransactionsByStatusAsc(trx);
+  }, [getTransactionByHandymanId, sortTransactionsByStatusAsc, profile]);
+
+  const renderMergedCard = (groupedServices: any) => {
+    return Object.values(groupedServices).map((group: any, index) => {
+      let title = "";
+      if (group[0].status === 4) {
+        title = "My Order In Progress";
+      } else if (group[0].status === 5) {
+        title = "My Order Completed";
+      }
+
+      return (
+        <View
+          key={index.toString()}
+          style={{
+            ...styles.balance,
+            ...styles.serviceCard,
+            backgroundColor: Colors[colorScheme ?? "light"].background,
+          }}>
+          <View style={styles.flex}>
+            <ThemedText font="medium" style={{ paddingHorizontal: 20 }}>
+              {title}
+            </ThemedText>
+            {group?.length > 0 ? (
+              group.map((item: any, index: number) => {
+                const category = services.find((i) => i.id === item.category);
+                const status = transactionStatus(
+                  item.trxId,
+                  item.totalPrice,
+                  item.status
+                );
+                return (
+                  <OrderCard
+                    key={index.toString()}
+                    title={category?.title ?? ""}
+                    status={status?.title ?? ""}
+                    image={category?.image}
+                    date={item.createdAt}
+                    last={group.length - 1 === index}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(app)/(root)/order",
+                        params: { trxId: item.trxId },
+                      })
+                    }
+                  />
+                );
+              })
+            ) : (
+              <NotFound ph={0} enableIcon={false} />
+            )}
+          </View>
+        </View>
+      );
+    });
+  };
+
+  useEffect(() => {
+    realm.subscriptions
+      .update((mutableSubs) => {
+        mutableSubs.add(realm.objects(Transaction));
+      })
+      .then(() => {
+        console.log("Flexible Sync subscription created => (home)/handyman .");
+      })
+      .catch((error) => {
+        console.error(
+          "Error creating subscription => (home)/handyman :",
+          error
+        );
+      });
+  }, [realm]);
 
   return (
     <BaseLayout
       lightBackgroundColor={Colors.warning}
       darkBackgroundColor={Colors.warning}
       enableScroll={true}
+      enableHeader={true}
       statusBarStyle="dark-content">
       <View style={styles.header}>
         <ThemedText font="medium" type="normal">
@@ -144,16 +207,17 @@ export default function HomeScreen() {
         <View
           style={{
             ...styles.balance,
+            paddingHorizontal: 20,
             backgroundColor: Colors[colorScheme ?? "light"].background,
           }}>
           <View style={styles.flex}>
             <ThemedText font="medium" type="semiSmall">
-              Your balance
+              Saldo tersisa
             </ThemedText>
             <ThemedText
               font="medium"
               type={balance?.toString()?.length > 9 ? "normal" : "subtitle"}>
-              {formatCurrency(account[0]?.balance || 0, "Rp")},-
+              {formatCurrency(getBalanceByUserid() || 0, "Rp")},-
             </ThemedText>
           </View>
           <TouchableOpacity
@@ -170,21 +234,22 @@ export default function HomeScreen() {
               style={{ marginRight: 10 }}
             />
             <ThemedText font="medium" type="semiSmall">
-              Top-up
+              Isi Saldo
             </ThemedText>
           </TouchableOpacity>
         </View>
       </View>
-      {/* transaction open */}
       <View
         style={{
           ...styles.balance,
           ...styles.serviceCard,
-          marginTop: -64,
+          marginTop: -60,
           backgroundColor: Colors[colorScheme ?? "light"].background,
         }}>
         <View style={styles.flex}>
-          <ThemedText font="medium">Need Handyman Now</ThemedText>
+          <ThemedText font="medium" style={{ paddingHorizontal: 20 }}>
+            Need Handyman Now
+          </ThemedText>
           {transactionOpen?.length > 0 ? (
             transactionOpen.map((item: any, index: number) => {
               const category = services.find((i) => i.id === item.category);
@@ -200,10 +265,10 @@ export default function HomeScreen() {
                   status={status?.title ?? ""}
                   image={category?.image}
                   date={item.createdAt}
-                  last={trx.length - 1 === index}
+                  last={transactionOpen.length - 1 === index}
                   onPress={() =>
                     router.push({
-                      pathname: "/(order)/detail",
+                      pathname: "/(app)/(root)/order",
                       params: { trxId: item.trxId },
                     })
                   }
@@ -215,86 +280,7 @@ export default function HomeScreen() {
           )}
         </View>
       </View>
-      {/* transaction my progress */}
-      <View
-        style={{
-          ...styles.balance,
-          ...styles.serviceCard,
-          marginTop: 10,
-          backgroundColor: Colors[colorScheme ?? "light"].background,
-        }}>
-        <View style={styles.flex}>
-          <ThemedText font="medium">My Order Progress</ThemedText>
-          {transactionMyProgress?.length > 0 ? (
-            transactionMyProgress.map((item: any, index: number) => {
-              const category = services.find((i) => i.id === item.category);
-              const status = transactionStatus(
-                item.trxId,
-                item.totalPrice,
-                item.status
-              );
-              return (
-                <OrderCard
-                  key={index.toString()}
-                  title={category?.title ?? ""}
-                  status={status?.title ?? ""}
-                  image={category?.image}
-                  date={item.createdAt}
-                  last={trx.length - 1 === index}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/order/detail",
-                      params: { trxId: item.trxId },
-                    })
-                  }
-                />
-              );
-            })
-          ) : (
-            <NotFound ph={0} enableIcon={false} />
-          )}
-        </View>
-      </View>
-      {/* transaction my completed */}
-      <View
-        style={{
-          ...styles.balance,
-          ...styles.serviceCard,
-          marginTop: 10,
-          backgroundColor: Colors[colorScheme ?? "light"].background,
-        }}>
-        <View style={styles.flex}>
-          <ThemedText font="medium">My Order Completed</ThemedText>
-          {transactionMyCompleted?.length > 0 ? (
-            transactionMyCompleted.map((item: any, index: number) => {
-              const category = services.find((i) => i.id === item.category);
-              const status = transactionStatus(
-                item.trxId,
-                item.totalPrice,
-                item.status
-              );
-              return (
-                <OrderCard
-                  key={index.toString()}
-                  title={category?.title ?? ""}
-                  status={status?.title ?? ""}
-                  image={category?.image}
-                  date={item.createdAt}
-                  last={trx.length - 1 === index}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/order/detail",
-                      params: { trxId: item.trxId },
-                    })
-                  }
-                />
-              );
-            })
-          ) : (
-            <NotFound ph={0} enableIcon={false} />
-          )}
-        </View>
-      </View>
+      {renderMergedCard(groupedStatus)}
     </BaseLayout>
   );
 }
@@ -325,7 +311,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingHorizontal: 20,
     paddingVertical: 20,
     marginBottom: 16,
   },
@@ -352,16 +337,4 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   serviceText: { marginBottom: 10 },
-  order: {
-    marginTop: -50,
-    marginHorizontal: 13,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3.84,
-    elevation: 5,
-    borderRadius: 20,
-  },
 });

@@ -7,10 +7,8 @@ export default function SignOut() {
   const { profile, isLoggedIn, setLogIn } =
     useUserStore() as unknown as UserStoreType;
 
-  if (isLoggedIn && profile?.role === "user") {
+  if (isLoggedIn && profile?._id) {
     return <Redirect href="/(tabs)" />;
-  } else if (isLoggedIn && profile?.role === "handyman") {
-    return <Redirect href="/(tabs-handyman)" />;
   } else if (!isLoggedIn) {
     return <Redirect href="/auth" />;
   }

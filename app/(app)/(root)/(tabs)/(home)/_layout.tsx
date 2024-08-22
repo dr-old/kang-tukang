@@ -7,6 +7,7 @@ const HomeStack = () => {
   const { colorScheme } = useThemeToggle();
   const dash = [
     { title: "index", header: false },
+    { title: "handyman", header: false },
     { title: "feature", header: true },
   ];
   return (
