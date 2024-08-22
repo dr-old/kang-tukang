@@ -4,8 +4,23 @@ import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
 
 export const useUserActions = () => {
-  const { profile } = useUserStore() as unknown as UserStoreType;
+  const { setProfile } = useUserStore() as unknown as UserStoreType;
   const realm = useRealm();
+
+  const handleProfile = (user: any) => {
+    setProfile({
+      _id: user._id,
+      birthday: user.birthday,
+      createdAt: user.createdAt,
+      email: user.email,
+      name: user.name,
+      phone: user.phone,
+      photo: user.photo,
+      address: user.address,
+      role: user.role,
+      updatedAt: user.updatedAt,
+    });
+  };
 
   // Create a new user
   const createUser = (user: any) => {
@@ -38,8 +53,12 @@ export const useUserActions = () => {
         if (user) {
           user.updatedAt = new Date();
           if (updatedData.name) user.name = updatedData.name;
-          if (updatedData.email) user.email = updatedData.email;
+          if (updatedData.phone) user.phone = updatedData.phone;
+          if (updatedData.password) user.password = updatedData.password;
+          if (updatedData.address) user.address = updatedData.address;
+          if (updatedData.photo) user.photo = updatedData.photo;
           // Add other fields as needed
+          handleProfile(user);
         }
       });
       return true;

@@ -3,8 +3,6 @@ import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
-import { useRealm } from "@realm/react";
-import { useEffect } from "react";
 import { UserStoreType } from "@/utils/types";
 import { useUserStore } from "@/stores/user/userStore";
 import {
@@ -19,23 +17,7 @@ import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 export default function ProfileScreen() {
   const { profile } = useUserStore() as unknown as UserStoreType;
-  const realm = useRealm();
   const { colorScheme, toggleTheme } = useThemeToggle();
-
-  useEffect(() => {
-    if (realm) {
-      realm.subscriptions
-        .update((mutableSubs) => {
-          mutableSubs.add(realm.objects("Service"));
-        })
-        .then(() => {
-          console.log("Flexible Sync subscription created.");
-        })
-        .catch((error) => {
-          console.error("Error creating subscription:", error);
-        });
-    }
-  }, [realm]);
 
   const security = [
     {
@@ -60,14 +42,14 @@ export default function ProfileScreen() {
         });
       },
     },
-    // {
-    //   title: "Theme Mode",
-    //   icon: "invert-mode",
-    //   library: Ionicons,
-    //   onPress: () => {
-    //     toggleTheme();
-    //   },
-    // },
+    {
+      title: "Theme Mode",
+      icon: "invert-mode",
+      library: Ionicons,
+      onPress: () => {
+        toggleTheme();
+      },
+    },
   ];
 
   const helpCenter = [

@@ -3,10 +3,9 @@ import { Image, StyleSheet, View } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
-import { Realm, useQuery, useRealm } from "@realm/react";
+import { Realm, useRealm } from "@realm/react";
 import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
-import { Transaction } from "@/schemes/TransactionScheme";
 import { useEffect, useMemo, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import NotFound from "@/components/NotFound";
@@ -19,14 +18,10 @@ import {
   transactionStatus,
 } from "@/utils/helpers";
 import { useTransactionDetail } from "@/services/useTransactionDetailActions";
-import { useServiceActions } from "@/services/useServiceActions";
 import { useAccountActions } from "@/services/useAccountActions";
-import { Ionicons } from "@expo/vector-icons";
 import { ThemedButton } from "@/components/ThemedButton";
 import { useModal } from "@/hooks/useModal";
-import ModalAlert from "@/components/ModalAlert";
 import { useAccountLogActions } from "@/services/useAccountLogActions";
-import { BSON } from "realm";
 import { useMessageActions } from "@/services/useMessageActions";
 import { useTransactionActions } from "@/services/useTransactionActions";
 import OrderData from "@/components/OrderData";
@@ -34,73 +29,66 @@ import { CollapsibleService } from "@/components/CollapsibleService";
 import Dashed from "@/components/Dashed";
 import { useTransactionLogActions } from "@/services/useTransactionLogActions";
 import OrderPayment from "@/components/OrderPayment";
-import OrderCart from "@/components/OrderCart";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
-import { useUserActions } from "@/services/useUserActions";
+import OrderCart from "@/components/OrderCart";
+import { Transaction } from "@/schemes/TransactionScheme";
+import { TransactionLog } from "@/schemes/TransactionLogScheme";
+import { TransactionDetail } from "@/schemes/TransactionDetailScheme";
 import OrderHistory from "@/components/OrderHistory";
+import { Ionicons } from "@expo/vector-icons";
+import { User } from "@/schemes/UserScheme";
+import { Service } from "@/schemes/ServiceScheme";
+import ModalAlert from "@/components/ModalAlert";
+import { Message } from "@/schemes/MessageScheme";
+import { Account } from "@/schemes/AccountScheme";
+import { AccountLog } from "@/schemes/AccountLogScheme";
+import { BSON } from "realm";
 
 export default function OrderDetailScreen() {
   const { profile } = useUserStore() as unknown as UserStoreType;
   const userId = new Realm.BSON.ObjectId(profile?._id);
-  const { updateTransaction } = useTransactionActions();
-  const { getTransactionDetailsByTrxId } = useTransactionDetail();
-  const { getServiceById } = useServiceActions();
+  const { updateTransaction, getTransactionByTrxid } = useTransactionActions();
+  const { getServicesByTransactionId } = useTransactionDetail();
   const { getBalanceByUserid, decrementBalance, getByUserid } =
     useAccountActions();
   const { createLog } = useAccountLogActions();
   const { createMessage } = useMessageActions();
   const { createTransactionLog, getTransactionLogByTrxid } =
     useTransactionLogActions();
-  const { getUserById } = useUserActions();
   const { trxId } = useLocalSearchParams();
   const realm = useRealm();
   const { colorScheme } = useThemeToggle();
   const theme = Colors[colorScheme ?? "light"];
   const [pay, setPay] = useState(false);
   const { showModal, hideModal } = useModal();
-  const trx = useQuery(
-    {
-      type: Transaction,
-      query: (collection) => collection.filtered("trxId == $0", trxId),
-    },
-    [trxId]
-  );
-  const trxData = trx[0];
-  const validBalance = Number(getBalanceByUserid()) >= trxData.totalPrice;
 
-  const statusBadge = useMemo(() => {
+  const trxData = useMemo(() => {
+    return getTransactionByTrxid(trxId.toString());
+  }, [getTransactionByTrxid, trxId]);
+
+  const validBalance = useMemo(() => {
+    return Number(getBalanceByUserid()) >= trxData.totalPrice;
+  }, [getBalanceByUserid, trxData]);
+
+  const trxStatus = useMemo(() => {
     const finded = transactionStatus(
-      trx[0].trxId,
-      trx[0].totalPrice,
-      trx[0].status
+      trxData.trxId,
+      trxData.totalPrice,
+      trxData.status
     );
     return finded;
-  }, [trx]);
+  }, [transactionStatus, trxData]);
 
   const trxDetail = useMemo(() => {
-    return getTransactionDetailsByTrxId(trxId.toString());
-  }, [trxId]);
-
-  const trxRequester = useMemo(() => {
-    return trxData?.handymanId && getUserById(trxData?.handymanId?.toString());
-  }, [trxData]);
+    return getServicesByTransactionId(trxData.trxId.toString());
+  }, [getServicesByTransactionId, trxData]);
 
   const trxLog = useMemo(() => {
-    return getTransactionLogByTrxid(trxId.toString());
-  }, [trxId]);
-
-  useEffect(() => {
-    realm.subscriptions.update((mutableSubs) => {
-      mutableSubs.add(trx);
-      mutableSubs.add(realm.objects("Account"));
-      mutableSubs.add(realm.objects("AccountLog"));
-      mutableSubs.add(realm.objects("TransactionLog"));
-      mutableSubs.add(realm.objects("Message"));
-    });
-  }, [realm, trx]);
+    return getTransactionLogByTrxid(trxData.trxId.toString());
+  }, [trxData]);
 
   const handlePay = () => {
-    // console.log(getBalanceByUserid(), trxData.totalPrice);
+    console.log(getBalanceByUserid(), trxData.totalPrice);
     try {
       decrementBalance(trxData.totalPrice);
       const data = {
@@ -110,19 +98,7 @@ export default function OrderDetailScreen() {
         balance: trxData.totalPrice,
       };
       createLog({ ...data, accountId: new BSON.ObjectId(getByUserid()?._id) });
-      createMessage({
-        title: "Yeah, Order Payment Successful",
-        message: `Your order has been successfully pay with ${formatCurrency(
-          trxData.totalPrice,
-          "Rp"
-        )} for main balance.`,
-      });
-      createTransactionLog({
-        trxId,
-        requesterId: userId,
-        responderId: "",
-        status: 3,
-      });
+      handleStatuses(trxData);
       updateTransaction(trxData._id.toString(), { status: 3 });
       toast("Order payment is successfull!");
     } catch (error: any) {
@@ -132,6 +108,46 @@ export default function OrderDetailScreen() {
       hideModal();
     }
   };
+
+  const handleStatuses = (trxData: { trxId: string; totalPrice: number }) => {
+    const statusesToProcess = [2, 3];
+    statusesToProcess.forEach((status: number) => {
+      // Call the transactionStatus function with the current status
+      const pay = transactionStatus(trxData.trxId, trxData.totalPrice, status);
+      // Create a message based on the result
+      createMessage({
+        title: pay?.subtitle ?? "",
+        message: pay?.message ?? "",
+      });
+
+      createTransactionLog({
+        trxId,
+        requesterId: userId,
+        responderId: "",
+        status: status,
+      });
+    });
+  };
+
+  useEffect(() => {
+    realm.subscriptions
+      .update((mutableSubs) => {
+        mutableSubs.add(realm.objects(Transaction));
+        mutableSubs.add(realm.objects(TransactionLog));
+        mutableSubs.add(realm.objects(TransactionDetail));
+        mutableSubs.add(realm.objects(User));
+        mutableSubs.add(realm.objects(Service));
+        mutableSubs.add(realm.objects(Message));
+        mutableSubs.add(realm.objects(Account));
+        mutableSubs.add(realm.objects(AccountLog));
+      })
+      .then(() => {
+        console.log("Flexible Sync subscription created => (order)/detail.");
+      })
+      .catch((error) => {
+        console.error("Error creating subscription => (order)/detail :", error);
+      });
+  }, [realm]);
 
   const showAlert = () => {
     showModal(
@@ -174,11 +190,11 @@ export default function OrderDetailScreen() {
           <OrderData
             trxData={{
               ...trxData,
-              status: statusBadge!.title,
-              type: statusBadge?.type,
+              status: trxStatus!.title,
+              type: trxStatus!.type,
             }}
           />
-          {trxRequester && (
+          {trxData?.handyman?._id && (
             <>
               <ThemedText font="medium" type="default">
                 Responder
@@ -186,12 +202,12 @@ export default function OrderDetailScreen() {
               <Divider height={5} />
               <View style={styles.requester}>
                 <Image
-                  source={{ uri: trxRequester?.photo }}
+                  source={{ uri: trxData?.handyman?.photo }}
                   style={styles.requesterImage}
                 />
                 <View style={{ flex: 1 }}>
                   <ThemedText font="semiBold" type="default">
-                    {trxRequester?.name}
+                    {trxData?.handyman?.name}
                   </ThemedText>
                   <ThemedText font="regular" type="semiSmall">
                     Responder
@@ -202,7 +218,7 @@ export default function OrderDetailScreen() {
                   <Ionicons
                     name="logo-whatsapp"
                     size={24}
-                    onPress={() => directWhatsapp(trxRequester?.phone)}
+                    onPress={() => directWhatsapp(trxData?.handyman?.phone)}
                   />
                 )}
               </View>
@@ -229,26 +245,29 @@ export default function OrderDetailScreen() {
               );
             })}
           <Divider height={20} />
-          <ThemedText font="medium" type="default">
-            Details
-          </ThemedText>
-          <Divider height={5} />
-          <CollapsibleService title="Service Details">
-            {trxDetail.map((item: any, index: number) => {
-              const service = getServiceById(item.serviceId);
-              return (
-                <OrderCart
-                  key={index}
-                  title={service!.title}
-                  description={item.description}
-                  price={item.price}
-                  qty={item.qty}
-                  subtotal={item.subtotal}
-                />
-              );
-            })}
-          </CollapsibleService>
-          <Divider height={20} />
+          {trxDetail?.length > 0 && (
+            <>
+              <ThemedText font="medium" type="default">
+                Details
+              </ThemedText>
+              <Divider height={5} />
+              <CollapsibleService title="Service Details">
+                {trxDetail.map((item: any, index: number) => {
+                  return (
+                    <OrderCart
+                      key={index}
+                      title={item?.service?.title}
+                      description={item.description}
+                      price={item.price}
+                      qty={item.qty}
+                      subtotal={item.subtotal}
+                    />
+                  );
+                })}
+              </CollapsibleService>
+              <Divider height={20} />
+            </>
+          )}
           {trxData.status === 1 && (
             <OrderPayment
               borderColor={hexToRgba(Colors.info, pay ? 1 : 0.3)}

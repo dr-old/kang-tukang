@@ -28,7 +28,7 @@ export const useCartActions = () => {
     realm.write(() => {
       const item = realm
         .objects(Cart)
-        .filtered("serviceId == $0", serviceId)[0];
+        .filtered("serviceId == $0", new Realm.BSON.ObjectId(serviceId))[0];
       if (item) {
         item.qty += 1;
       }
@@ -39,7 +39,7 @@ export const useCartActions = () => {
     realm.write(() => {
       const item = realm
         .objects(Cart)
-        .filtered("serviceId == $0", serviceId)[0];
+        .filtered("serviceId == $0", new Realm.BSON.ObjectId(serviceId))[0];
       if (item && item.qty > 1) {
         item.qty -= 1;
       } else if (item && item.qty === 1) {
@@ -51,8 +51,19 @@ export const useCartActions = () => {
   const getQuantity = (serviceId: string) => {
     const item = realm
       .objects(Cart)
-      .filtered("userId == $0 AND serviceId == $1", userId, serviceId)[0];
+      .filtered(
+        "userId == $0 AND serviceId == $1",
+        userId,
+        new Realm.BSON.ObjectId(serviceId)
+      )[0];
     return item ? item.qty : 0;
+  };
+
+  const getCartByUserid = (category: number) => {
+    const items = realm
+      .objects(Cart)
+      .filtered("userId == $0 && category == $1", userId, category);
+    return items;
   };
 
   const getTotalQuantity = (category: number) => {
@@ -93,6 +104,7 @@ export const useCartActions = () => {
     getTotalQuantity,
     getTotalPrice,
     getTotalPriceByUser,
+    getCartByUserid,
     deleteAllByUser,
   };
 };

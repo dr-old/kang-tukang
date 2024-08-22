@@ -22,14 +22,8 @@ const ServiceCardMultiple = ({
   category,
   border,
 }: ServiceCardProps) => {
-  const {
-    addToCart,
-    incrementQuantity,
-    decrementQuantity,
-    getQuantity,
-    getTotalQuantity,
-    getTotalPrice,
-  } = useCartActions();
+  const { addToCart, incrementQuantity, decrementQuantity, getQuantity } =
+    useCartActions();
   const { colorScheme } = useThemeToggle();
 
   return (
@@ -110,9 +104,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   orderTitle: {
+    flex: 1,
     flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "center",
     marginBottom: 5,
+    marginRight: 10,
   },
   groupButton: {
     width: 90,

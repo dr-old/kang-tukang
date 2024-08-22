@@ -3,9 +3,13 @@ import { Colors } from "@/constants/Colors";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
 import { Stack } from "expo-router";
 
-const MessageStack = () => {
+const HomeStack = () => {
   const { colorScheme } = useThemeToggle();
-  const dash = [{ title: "index", header: true }];
+  const dash = [
+    { title: "index", header: false },
+    { title: "handyman", header: false },
+    { title: "feature", header: true },
+  ];
   return (
     <Stack>
       {dash.map((item: any, index: number) => (
@@ -30,4 +34,4 @@ const MessageStack = () => {
   );
 };
 
-export default MessageStack;
+export default HomeStack;

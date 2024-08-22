@@ -15,48 +15,51 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   const { colorScheme } = useThemeToggle();
 
   return (
-    <View style={[styles.tabBar]}>
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const isFocused = state.index === index;
+    <View
+      style={{ backgroundColor: Colors[colorScheme ?? "light"].background }}>
+      <View style={[styles.tabBar]}>
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
 
-        const onPress = () => {
-          const event = navigation.emit({
-            type: "tabPress",
-            target: route.key,
-            canPreventDefault: true,
-          });
+          const onPress = () => {
+            const event = navigation.emit({
+              type: "tabPress",
+              target: route.key,
+              canPreventDefault: true,
+            });
 
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
-          }
-        };
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
 
-        return (
-          <TouchableOpacity
-            key={index}
-            onPress={onPress}
-            style={styles.tabItem}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityState={isFocused ? { selected: true } : {}}
-            accessibilityLabel={options.tabBarAccessibilityLabel}>
-            <Image source={imageTabBar[index]} style={[styles.tabImage]} />
-            <ThemedText
-              type="semiSmall"
-              font="medium"
-              style={{ color: Colors.black }}>
-              {options.title}
-            </ThemedText>
-            <View
-              style={[
-                styles.tabActive,
-                { backgroundColor: isFocused ? Colors.black : "transparent" },
-              ]}
-            />
-          </TouchableOpacity>
-        );
-      })}
+          return (
+            <TouchableOpacity
+              key={index}
+              onPress={onPress}
+              style={styles.tabItem}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              accessibilityLabel={options.tabBarAccessibilityLabel}>
+              <Image source={imageTabBar[index]} style={[styles.tabImage]} />
+              <ThemedText
+                type="semiSmall"
+                font="medium"
+                style={{ color: Colors.black }}>
+                {options.title}
+              </ThemedText>
+              <View
+                style={[
+                  styles.tabActive,
+                  { backgroundColor: isFocused ? Colors.black : "transparent" },
+                ]}
+              />
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 };
@@ -69,7 +72,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
-    borderTopWidth: 1,
+    borderTopWidth: 2,
     borderTopColor: "#ddd",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

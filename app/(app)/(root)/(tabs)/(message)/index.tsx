@@ -3,36 +3,33 @@ import { StyleSheet, View } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
-import { Realm, useQuery, useRealm } from "@realm/react";
-import { useEffect } from "react";
+import { useRealm } from "@realm/react";
+import { useEffect, useMemo } from "react";
 import moment from "moment";
 import { AntDesign } from "@expo/vector-icons";
 import Divider from "@/components/Divider";
 import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
-import { Message } from "@/schemes/MessageScheme";
 import NotFound from "@/components/NotFound";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { useMessageActions } from "@/services/useMessageActions";
+import { Message } from "@/schemes/MessageScheme";
 
 export default function MessageScreen() {
   const realm = useRealm();
   const { colorScheme } = useThemeToggle();
+  const { getAllMessage } = useMessageActions();
   const { profile } = useUserStore() as unknown as UserStoreType;
-  const userId = new Realm.BSON.ObjectId(profile?._id);
-  const message = useQuery(
-    {
-      type: Message,
-      query: (collection) =>
-        collection.filtered("sender == $0", userId).sorted("createdAt", true),
-    },
-    [userId]
-  );
+
+  const message = useMemo(() => {
+    return getAllMessage(profile!._id.toString());
+  }, [getAllMessage, profile, realm]);
 
   useEffect(() => {
     realm.subscriptions.update((mutableSubs) => {
-      mutableSubs.add(message);
+      mutableSubs.add(realm.objects(Message));
     });
-  }, [realm, message]);
+  }, [realm]);
 
   return (
     <BaseLayout

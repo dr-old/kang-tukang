@@ -18,7 +18,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery, useRealm } from "@realm/react";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { Image, StatusBar, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 
 const schema = {
   email: [{ rule: vr.email }],
@@ -97,8 +97,6 @@ export default function LoginScreen() {
         });
     }
   }, [realm]);
-
-  console.log(StatusBar.currentHeight);
 
   return (
     <BaseLayout enableScroll={true} statusBarStyle="dark-content">

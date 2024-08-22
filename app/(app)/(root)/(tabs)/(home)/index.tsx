@@ -7,60 +7,41 @@ import { responsiveHeight, responsiveWidth } from "@/utils/sizing";
 import { Input } from "@/components/Input";
 import { useEffect, useState } from "react";
 import { AntDesign, Feather, Fontisto } from "@expo/vector-icons";
-import { formatCurrency } from "@/utils/helpers";
 import { services } from "@/constants/Constant";
 import Card from "@/components/Card";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useModal } from "@/hooks/useModal";
 import ModalImage from "@/components/ModalImage";
-import { useToast } from "@/hooks/useToast";
 import ModalTopup from "@/components/ModalTopup";
-import { Realm, useQuery, useRealm } from "@realm/react";
-import { UserStoreType } from "@/utils/types";
-import { useUserStore } from "@/stores/user/userStore";
+import { useRealm } from "@realm/react";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { useAccountActions } from "@/services/useAccountActions";
+import { formatCurrency } from "@/utils/helpers";
 import { Account } from "@/schemes/AccountScheme";
 import { AccountLog } from "@/schemes/AccountLogScheme";
 import { Message } from "@/schemes/MessageScheme";
-import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { UserStoreType } from "@/utils/types";
+import { useUserStore } from "@/stores/user/userStore";
 
 export default function HomeScreen() {
+  const { profile, isLoggedIn } = useUserStore() as unknown as UserStoreType;
+
+  if (isLoggedIn && profile?.role === "handyman") {
+    return <Redirect href="/(app)/(home)/handyman" />;
+  }
+
   const { colorScheme } = useThemeToggle();
   const [search, setSearch] = useState("");
   const { showModal } = useModal();
   const balance = 20000;
-  const { showToast } = useToast();
-  const { profile } = useUserStore() as unknown as UserStoreType;
-  const userId = new Realm.BSON.ObjectId(profile?._id);
+  const { getBalanceByUserid } = useAccountActions();
   const realm = useRealm();
-  const account = useQuery(
-    {
-      type: Account,
-      query: (collection) => collection.filtered("userId == $0", userId),
-    },
-    [userId]
-  );
-  const accountLog = useQuery(
-    {
-      type: AccountLog,
-      query: (collection) => collection.filtered("userId == $0", userId),
-    },
-    [userId]
-  );
-
-  const message = useQuery(
-    {
-      type: Message,
-      query: (collection) => collection.filtered("receiver == $0", userId),
-    },
-    [userId]
-  );
 
   const showImage = () => {
     showModal(<ModalImage />);
   };
 
   const showTopup = () => {
-    // showToast("Top-up successfully!", "success", "modal");
     showModal(<ModalTopup />);
   };
 
@@ -74,17 +55,18 @@ export default function HomeScreen() {
 
   useEffect(() => {
     realm.subscriptions.update((mutableSubs) => {
-      mutableSubs.add(account);
-      mutableSubs.add(accountLog);
-      mutableSubs.add(message);
+      mutableSubs.add(realm.objects(Account));
+      mutableSubs.add(realm.objects(AccountLog));
+      mutableSubs.add(realm.objects(Message));
     });
-  }, [realm, account, accountLog, message]);
+  }, [realm]);
 
   return (
     <BaseLayout
       lightBackgroundColor={Colors.warning}
       darkBackgroundColor={Colors.warning}
       enableScroll={true}
+      enableHeader={true}
       statusBarStyle="dark-content">
       <View style={styles.header}>
         <ThemedText font="medium" type="normal">
@@ -134,7 +116,7 @@ export default function HomeScreen() {
             <ThemedText
               font="medium"
               type={balance?.toString()?.length > 9 ? "normal" : "subtitle"}>
-              {formatCurrency(account[0]?.balance || 0, "Rp")},-
+              {formatCurrency(getBalanceByUserid() || 0, "Rp")},-
             </ThemedText>
           </View>
           <TouchableOpacity

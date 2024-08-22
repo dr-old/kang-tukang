@@ -47,6 +47,7 @@ export function ThemedText({
   ...rest
 }: ThemedTextProps) {
   const { colorScheme } = useThemeToggle();
+  console.log(colorScheme);
 
   const color = Colors[colorScheme ?? "light"].text;
 

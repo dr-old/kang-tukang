@@ -3,30 +3,33 @@ import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
 import { Realm, useQuery, useRealm } from "@realm/react";
-import { useEffect, useMemo } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { Service } from "@/schemes/ServiceScheme";
-import { Cart } from "@/schemes/CartScheme";
 import { useUserStore } from "@/stores/user/userStore";
 import { UserStoreType } from "@/utils/types";
 import ServiceCardMultiple from "@/components/ServiceCardMultiple";
-import ServiceCard from "@/components/ServiceCard";
 import { useCartActions } from "@/services/useCartActions";
-import { formatCurrency, generateTrxId } from "@/utils/helpers";
-import { ThemedButton } from "@/components/ThemedButton";
-import { Transaction } from "@/schemes/TransactionScheme";
+import {
+  formatCurrency,
+  generateTrxId,
+  toast,
+  transactionStatus,
+} from "@/utils/helpers";
 import { useTransactionActions } from "@/services/useTransactionActions";
-import { useToast } from "@/hooks/useToast";
 import { useTransactionDetail } from "@/services/useTransactionDetailActions";
 import { useTransactionLogActions } from "@/services/useTransactionLogActions";
 import { useMessageActions } from "@/services/useMessageActions";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
-
-interface LocalProps {
-  id: number;
-  title: string;
-  image: any;
-}
+import { useServiceActions } from "@/services/useServiceActions";
+import { useEffect, useMemo } from "react";
+import { Service } from "@/schemes/ServiceScheme";
+import { Cart } from "@/schemes/CartScheme";
+import ServiceCard from "@/components/ServiceCard";
+import { ThemedButton } from "@/components/ThemedButton";
+import ModalAlert from "@/components/ModalAlert";
+import { useModal } from "@/hooks/useModal";
+import { Transaction } from "@/schemes/TransactionScheme";
+import { TransactionLog } from "@/schemes/TransactionLogScheme";
+import { TransactionDetail } from "@/schemes/TransactionDetailScheme";
 
 export default function FeatureScreen() {
   const { createTransaction } = useTransactionActions();
@@ -34,37 +37,23 @@ export default function FeatureScreen() {
   const { createTransactionLog } = useTransactionLogActions();
   const { getTotalQuantity, getTotalPrice, deleteAllByUser } = useCartActions();
   const { createMessage } = useMessageActions();
+  const { getServiceByCategory } = useServiceActions();
   const { id, title } = useLocalSearchParams();
   const category = Number(id);
   const { profile } = useUserStore() as unknown as UserStoreType;
   const userId = new Realm.BSON.ObjectId(profile?._id);
   const { getTotalPriceByUser } = useCartActions();
   const realm = useRealm();
-  const { showToast } = useToast();
+  const { showModal, hideModal } = useModal();
   const { colorScheme } = useThemeToggle();
-  const filtered = useQuery(
-    {
-      type: Service,
-      query: (collection) => collection.filtered("category == $0", category),
-    },
-    [category]
-  );
   const carts = useQuery(
     {
       type: Cart,
       query: (collection) =>
-        collection.filtered("userId == $0 && category == $1", userId, category),
+        collection.filtered("category == $0 && userId == $1", category, userId),
     },
-    [userId, category]
+    [category, userId]
   );
-  const trx = useQuery(
-    {
-      type: Transaction,
-      query: (collection) => collection.filtered("userId == $0", userId),
-    },
-    [userId]
-  );
-  // const { createMultipleServices } = useServiceActions();
 
   const handleContinue = () => {
     try {
@@ -93,33 +82,37 @@ export default function FeatureScreen() {
         status: 1,
       });
       if (newTrx && newTrxDetail && newTrxLog) {
+        const message = transactionStatus(trxId, getTotalPrice(category), 1);
         createMessage({
-          title: "Order Awaiting Payment",
-          message: `Your order with ID ${trxId} is awaiting payment of ${formatCurrency(
-            getTotalPrice(category),
-            "Rp"
-          )}.`,
+          title: message?.subtitle ?? "",
+          message: message?.message ?? "",
         });
         deleteAllByUser(category);
-        router.replace("/(order)");
+        router.push("/(app)/(order)");
+        toast("Please continue to payment order!");
       }
-      // showToast("Transaction awaiting payment", "success", "modal");
-    } catch (error) {
-      showToast("Something wrong, transaction is failed!", "error", "modal");
+    } catch (error: any) {
+      toast(error?.message || "Something wrong, transaction is failed!");
+    } finally {
+      hideModal();
     }
   };
 
-  useEffect(() => {
-    realm.subscriptions.update((mutableSubs) => {
-      mutableSubs.add(carts);
-      mutableSubs.add(filtered);
-      mutableSubs.add(trx);
-    });
-  }, [realm, carts, filtered, trx]);
+  const showAlert = () => {
+    showModal(
+      <ModalAlert
+        onConfirm={handleContinue}
+        message="Are you sure you want to continue this order?"
+        title="Confirm Continue"
+        labelConfirm="Yes, Confirm"
+        labelCancel="Cancel"
+      />
+    );
+  };
 
-  // Group services by groupId
+  // // Group services by groupId
   const groupedServices = useMemo(() => {
-    return filtered.reduce((acc: any, service) => {
+    return getServiceByCategory(Number(id)).reduce((acc: any, service) => {
       const key: any = service.groupId || service._id; // Use _id as key if no groupId exists
       if (!acc[key]) {
         acc[key] = [];
@@ -127,7 +120,17 @@ export default function FeatureScreen() {
       acc[key].push(service);
       return acc;
     }, {});
-  }, [filtered]);
+  }, [getServiceByCategory, id, carts]);
+
+  useEffect(() => {
+    realm.subscriptions.update((mutableSubs) => {
+      mutableSubs.add(realm.objects(Service));
+      mutableSubs.add(realm.objects(Cart));
+      mutableSubs.add(realm.objects(Transaction));
+      mutableSubs.add(realm.objects(TransactionLog));
+      mutableSubs.add(realm.objects(TransactionDetail));
+    });
+  }, [realm]);
 
   // Render merged or individual cards
   const renderMergedCard = (groupedServices: any) => {
@@ -208,11 +211,12 @@ export default function FeatureScreen() {
             </ThemedText>
           </View>
           <ThemedButton
+            disabled={carts?.length > 0 ? false : true}
             height={40}
             ph={30}
             type="default"
             title="Continue"
-            onPress={handleContinue}
+            onPress={showAlert}
           />
         </View>
       </View>
@@ -261,5 +265,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 17,
     height: 100,
     borderRadius: 20,
+  },
+
+  // service card
+  orderItem: {
+    flexDirection: "row",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginHorizontal: 17,
+    marginBottom: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.borderYellow,
+  },
+  orderTitle: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  groupButton: {
+    width: 90,
+    marginLeft: 10,
+  },
+  button: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  iconButton: {
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 5,
+  },
+  buttonCircle: {
+    backgroundColor: Colors.info,
+    borderRadius: 50,
+    width: 30,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

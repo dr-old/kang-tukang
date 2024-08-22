@@ -3,8 +3,8 @@ import { Platform, StyleSheet, View } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ThemedText } from "@/components/ThemedText";
-import { useQuery, useRealm } from "@realm/react";
-import { useCallback, useEffect, useState } from "react";
+import { useRealm } from "@realm/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { UserStoreType } from "@/utils/types";
 import { useUserStore } from "@/stores/user/userStore";
 import { router, useLocalSearchParams } from "expo-router";
@@ -18,12 +18,13 @@ import Divider from "@/components/Divider";
 import { User } from "@/schemes/UserScheme";
 import { Textarea } from "@/components/Textarea";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { useUserActions } from "@/services/useUserActions";
 
 export default function UpdateProfileScreen() {
   const { profile, setProfile } = useUserStore() as unknown as UserStoreType;
   const { id, title } = useLocalSearchParams();
   const realm = useRealm();
-  const users = useQuery(User);
+  const { updateUser, getUserById } = useUserActions();
   const { colorScheme } = useThemeToggle();
   const theme = Colors[colorScheme ?? "light"];
   const [password, setPassword] = useState("");
@@ -74,70 +75,62 @@ export default function UpdateProfileScreen() {
           onPassword();
         } else if (Number(id) === 2) {
           onPhone();
-        } else {
+        } else if (Number(id) === 3) {
           onProfile();
         }
       }
     );
 
+  const userMemo = useMemo(() => {
+    return getUserById(profile!._id.toString());
+  }, [getUserById, profile]);
+
   const handleChangePassword = useCallback(
     async (currentPassword: string, password: string) => {
-      realm.write(() => {
-        const user = realm
-          .objects(User)
-          .filtered("email == $0", profile?.email)[0];
-        if (user) {
-          if (user.password !== currentPassword) {
-            toast("This current password is incorrect!");
-          } else {
-            user.password = password;
-            user.updatedAt = new Date();
-            handleProfile(user);
-            toast("The password has been successfully updated!");
-            router.back();
-          }
+      if (userMemo) {
+        if (userMemo.password !== currentPassword) {
+          toast("This current password is incorrect!");
+        } else {
+          updateUser(userMemo!._id.toString(), {
+            password,
+            updatedAt: new Date(),
+          });
+          toast("The password has been successfully updated!");
+          router.back();
         }
-      });
+      }
     },
-    [realm]
+    [realm, userMemo]
   );
 
   const handleChangePhone = useCallback(
     async (phone: string) => {
-      realm.write(() => {
-        const user = realm
-          .objects(User)
-          .filtered("email == $0", profile?.email)[0];
-        if (user) {
-          user.phone = phone;
-          user.updatedAt = new Date();
-          handleProfile(user);
-          toast("The phone number has been successfully updated!");
-          router.back();
-        }
-      });
+      if (userMemo) {
+        updateUser(userMemo!._id.toString(), {
+          phone,
+          updatedAt: new Date(),
+        });
+        toast("The phone number has been successfully updated!");
+        router.back();
+      }
     },
-    [realm]
+    [realm, userMemo]
   );
 
   const handleChangeProfile = useCallback(
     async (name: string, address: string, photo: string) => {
-      realm.write(() => {
-        const user = realm
-          .objects(User)
-          .filtered("email == $0", profile?.email)[0];
-        if (user) {
-          user.name = name;
-          user.address = address;
-          user.photo = photo;
-          user.updatedAt = new Date();
-          handleProfile(user);
-          toast("The profile has been successfully updated!");
-          router.back();
-        }
-      });
+      if (userMemo) {
+        updateUser(userMemo!._id.toString(), {
+          name,
+          address,
+          photo,
+          updatedAt: new Date(),
+        });
+        toast("The profile has been successfully updated!");
+        router.back();
+      }
     },
-    [realm]
+    [realm, userMemo]
   );
 
   const onPassword = useCallback(async () => {
@@ -156,7 +149,7 @@ export default function UpdateProfileScreen() {
       toast(error?.message || "Something wrong!");
       console.log(`Failed to sign up: ${error?.message}`);
     }
-  }, [handleChangePassword, values.phone]);
+  }, [handleChangePhone, values.phone]);
 
   const onProfile = useCallback(async () => {
     try {
@@ -166,21 +159,6 @@ export default function UpdateProfileScreen() {
       console.log(`Failed to sign up: ${error?.message}`);
     }
   }, [handleChangeProfile, values.name, values.address, values.photo]);
-
-  const handleProfile = (user: any) => {
-    setProfile({
-      _id: user._id,
-      birthday: user.birthday,
-      createdAt: user.createdAt,
-      email: user.email,
-      name: user.name,
-      phone: user.phone,
-      photo: user.photo,
-      address: user.address,
-      role: user.role,
-      updatedAt: user.updatedAt,
-    });
-  };
 
   const handlePassword = (name: string, value: string) => {
     handleChange(name, value);
@@ -194,9 +172,9 @@ export default function UpdateProfileScreen() {
 
   useEffect(() => {
     realm.subscriptions.update((mutableSubs) => {
-      mutableSubs.add(users);
+      mutableSubs.add(realm.objects(User));
     });
-  }, [realm, users]);
+  }, [realm]);
 
   return (
     <BaseLayout
